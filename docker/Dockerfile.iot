@@ -1,0 +1,10 @@
+FROM python:3-slim
+
+WORKDIR /app
+
+COPY src/iot.py . 
+COPY docker/dependencies/requirements_iot.txt . 
+
+RUN pip install -r requirements_iot.txt
+
+CMD ["python", "-u", "iot.py"]

@@ -1,0 +1,21 @@
+services: 
+  cloud: 
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.cloud
+    image: cloud
+  iot: 
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.iot
+    image: iot
+  edge: 
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.edge
+    image: edge
+  camera_simulation:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.camera_simulation
+    image: camera_simulation

@@ -1,0 +1,10 @@
+FROM python:3-slim
+
+WORKDIR /app
+
+COPY src/cloud.py . 
+COPY docker/dependencies/requirements_cloud.txt . 
+
+RUN pip install -r requirements_cloud.txt
+
+CMD ["python", "-u", "cloud.py"]

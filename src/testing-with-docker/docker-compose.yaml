@@ -1,0 +1,5 @@
+services:
+  main1:
+    image: main1
+  main2:
+    image: main2

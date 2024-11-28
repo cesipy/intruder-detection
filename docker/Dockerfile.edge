@@ -1,0 +1,10 @@
+FROM python:3-slim
+
+WORKDIR /app
+
+COPY src/edge.py . 
+COPY docker/dependencies/requirements_edge.txt . 
+
+RUN pip install -r requirements_edge.txt
+
+CMD ["python", "-u", "edge.py"]

@@ -1,0 +1,10 @@
+FROM python:3-slim
+
+WORKDIR /app
+
+COPY src/camera_simulation.py . 
+COPY docker/dependencies/requirements_camera_simulation.txt . 
+
+RUN pip install -r requirements_camera_simulation.txt
+
+CMD ["python", "-u", "camera_simulation.py"]
