@@ -1,16 +1,19 @@
 import socketio
-import sys
 import time
 
-# wait for server to be set up
-time.sleep(10)
-
 sio = socketio.Client()
-sio.connect('http://edge:5000')
-print('connected to server',flush=True)
 
 @sio.event
 def alarm_event():
     print('Intruder detected, alarm turned on... ', flush=True)
 
-sio.wait()
+def main():
+    time.sleep(10)  # wait for the server to be set up
+    sio.connect('http://edge:5000')
+    print('connected to server', flush=True)
+
+    sio.wait()  # wait for events 
+
+
+if __name__ == '__main__':
+    main()
