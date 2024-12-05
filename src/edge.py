@@ -5,11 +5,18 @@ import eventlet
 
 sio = socketio.Server()
 
+def trigger_alarm():
+    sio.emit('alarm_event')
+
 @sio.event
 def frame_event(sid, data):
     frame_name = data['frame_name']
     frame_data = data['data']
     print(f'recieved {frame_name}')
+
+    # alarm test
+    if (frame_name == 'frame100.jpg'):
+        trigger_alarm()
 
     np_arr = np.frombuffer(frame_data, np.uint8)
     frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)

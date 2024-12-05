@@ -2,7 +2,6 @@ import os
 import cv2
 import socketio
 import time
-import sys
 
 video_path = 'camera_set\\video1.avi'
 video = cv2.VideoCapture(video_path)
