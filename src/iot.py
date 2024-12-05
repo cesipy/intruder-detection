@@ -3,18 +3,15 @@ import cv2
 import socketio
 import time
 
-video_path = 'camera_set\\video1.avi'
+video_path = os.path.join('camera_set', 'video1.avi')
 video = cv2.VideoCapture(video_path)
 
-
 if (video.isOpened() == False):
-    print('Video file could not be opened')
-
-os.makedirs('camera_set\\video1', exist_ok=True)
+    print(f'Video file could not be opened on path {video_path}')
 
 
 sio = socketio.Client()
-sio.connect('http://localhost:5000')
+sio.connect('http://edge:5000')
   
 
 def send_frames():

@@ -8,14 +8,26 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.iot
+    depends_on:
+      - edge
     image: iot
+    networks:
+      - simulation_network
   edge: 
     build:
       context: .
       dockerfile: docker/Dockerfile.edge
     image: edge
-  camera_simulation:
+    networks:
+      - simulation_network
+  alarm:
     build:
       context: .
-      dockerfile: docker/Dockerfile.camera_simulation
-    image: camera_simulation
+      dockerfile: docker/Dockerfile.alarm
+    depends_on:
+      - edge
+    image: alarm
+
+networks:
+  simulation_network:
+    driver: bridge

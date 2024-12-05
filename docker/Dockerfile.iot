@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY src/iot.py . 
 COPY docker/dependencies/requirements_iot.txt . 
+COPY camera_set ./camera_set
 
 RUN pip install -r requirements_iot.txt
 

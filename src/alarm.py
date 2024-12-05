@@ -1,9 +1,8 @@
 import socketio
 import sys
 
-
 sio = socketio.Client()
-sio.connect('http://localhost:5000')
+sio.connect('http://edge:5000')
 
 @sio.event
 def alarm_event():

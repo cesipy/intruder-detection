@@ -1,0 +1,10 @@
+FROM python:3-slim
+
+WORKDIR /app
+
+COPY src/alarm.py . 
+COPY docker/dependencies/requirements_alarm.txt . 
+
+RUN pip install -r requirements_alarm.txt
+
+CMD ["python", "-u", "alarm.py"]
