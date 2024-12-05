@@ -26,11 +26,11 @@
 In our surveillance system, cameras are simulated using the WiseNET dataset. The system is designed to capture video streams and process them efficiently for real-time object and facial recognition. The video data undergoes preprocessing at the edge, minimizing the workload on the cloud, reducing latency, and optimizing the overall performance of the surveillance system. The system leverages edge devices and cloud services to ensure scalability, fast response times, and effective monitoring.  
 
 \section{System architecture}
-The video streams are stored in an SQLite database on Amazon S3 \ref{fig:architecture}. Camera containers running on EC2 instances fetch the data from the database and split it into image sequences using OpenCV. These sequences are then sent to edge devices at regular intervals, simulating a real-time video stream. Communication between components is handled through a REST API, which is capable of managing large payloads and scaling efficiently. Additionally, the EC2 instance houses an alarm container, completing the IoT layer of the system.
+The video files are stored in camera containers running on EC2 instances \ref{fig:architecture}. Each container parses a certain video file into images using OpenCV. These sequences are then sent to edge devices at regular intervals through HTTP, simulating a real-time video stream. Communication between components is handled through a WebSocket, which is capable of managing large payloads and scaling efficiently. Additionally, the EC2 instance houses an alarm container, completing the IoT layer of the system.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=1\linewidth]{DS_architecture.png}
+    \includegraphics[width=1\linewidth]{res/report/DS_architecture_version2.png}
     \caption{Example of your architectural diagram.}
     \label{fig:architecture}
 \end{figure}
@@ -42,7 +42,12 @@ The cloud layer integrates with Amazon Rekognition to perform facial recognition
 
 
 \section{Implementation details}
-Provide details about the frameworks and resources used. Justify your decisions carefully.
+The IoT layer is represented by 4 camera containers and one alarm container for each edge device. The simulation video comes from set\_3 of WiseNET dataset, which potrays two people appearing in differnt times on the scene. One person can simulate the intruder and the other an employee. 
+
+While all camera containers will include the whole set of videos, each will select only one based on an environment variable bound to the container. This video is then processed using OpenCV read() function, which returns the sequence of frames. Those are then sent using Socket.IO library to the edge device in an interval simulating the real frame rate. 
+
+The alarm container also connects to the edge server and waits for an event, that will trigger it.
+
 
 \section{Evaluation}
 Evaluation of the response time and scalability (number of devices and traffic) to prove the correctness of your implementation. The more detailed the better. 
