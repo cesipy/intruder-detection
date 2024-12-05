@@ -5,6 +5,7 @@ import os
 import uvicorn
 
 sio = socketio.AsyncServer(async_mode="asgi")
+# dir_path = os.path.join('camera_set', 'frames') # (TESTING)
 
 async def trigger_alarm():
     await sio.emit('alarm_event')
@@ -19,14 +20,15 @@ async def process_frame(frame_data, frame_name):
     #output_path = os.path.join(dir_path, frame_name)
     #cv2.imwrite(output_path, frame)
 
-# TODO use sid to keep track of clients (to notify alarm what camera caught the intruder)
+# TODO use sid to keep track of clients (to notify alarm what camera caught the intruder?)
 @sio.event
 async def frame_event(sid, data):
     name = data['frame_name']
     frame = data['data']
+    #print(f'recieved frame {name}')
 
     # alarm trigger (TESTING)
-    if (name == 'frame100.jpg'):
+    if (name == 'video3_frame100.jpg'):
         await trigger_alarm()
     
     await process_frame(frame, name)
@@ -37,8 +39,7 @@ def main():
     uvicorn.run(app, host="0.0.0.0", port=5000)
 
     # create folder for saving the frames (TESTING)
-    # dir_path = os.path.join('camera_set', 'video1')
-    # os.makedirs(dir_path, exist_ok=True)
+    #os.makedirs(dir_path, exist_ok=True)
 
 
 if __name__ == '__main__':
