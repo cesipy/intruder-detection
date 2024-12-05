@@ -10,6 +10,9 @@ video = cv2.VideoCapture(video_path)
 if (video.isOpened() == False):
     print(f'Video file could not be opened on path {video_path}')
 
+# wait for server to be set up
+time.sleep(10)
+
 # connect to the edge server 
 sio = socketio.Client()
 sio.connect('http://edge:5000')
