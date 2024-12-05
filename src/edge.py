@@ -8,6 +8,7 @@ import eventlet
 sio = socketio.Server()
 
 dir_path = os.path.join('camera_set', 'video1')
+
 def trigger_alarm():
     sio.emit('alarm_event')
 
@@ -25,8 +26,9 @@ def frame_event(sid, data):
     np_arr = np.frombuffer(frame_data, np.uint8)
     frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-    output_path = os.path.join(dir_path, frame_name)
-    cv2.imwrite(output_path, frame)
+    # TESTING
+    #output_path = os.path.join(dir_path, frame_name)
+    #cv2.imwrite(output_path, frame)
 
 app = socketio.WSGIApp(sio)
 

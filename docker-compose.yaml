@@ -27,6 +27,8 @@ services:
     depends_on:
       - edge
     image: alarm
+    networks:
+      - simulation_network
 
 networks:
   simulation_network:
