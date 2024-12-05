@@ -1,3 +1,10 @@
 *.DS_Store
 *.vs_code
 *.vscode
+
+# latex files
+*main.fls
+*main.aux
+*main.log
+*main.synctex.gz
+*main.fdb_latexmk

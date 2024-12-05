@@ -24,7 +24,7 @@ def frame_event(sid, data):
     sys.stdout.flush()
 
     # alarm test (TESTING: TODO fix this)
-    if (frame_name == 'frame100.jpg'):
+    if detect_intruder(frame_name=frame_name):
         trigger_alarm()
 
     # convert back to jpg
@@ -34,6 +34,16 @@ def frame_event(sid, data):
     # save the frames (TESTING)
     #output_path = os.path.join(dir_path, frame_name)
     #cv2.imwrite(output_path, frame)
+    
+    
+def detect_intruder(frame_name: str, test_detection_freq=100): 
+    frame_name = frame_name.replace("frame", "")
+    frame_name = frame_name.replace(".jpg", "")
+    frame_number = int(frame_name)
+    
+    if frame_number % test_detection_freq == 0:
+        return True
+    
 
 
 if __name__ == '__main__':
