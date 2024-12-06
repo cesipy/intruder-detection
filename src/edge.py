@@ -7,6 +7,9 @@ import uvicorn
 sio = socketio.AsyncServer(async_mode="asgi")
 # dir_path = os.path.join('camera_set', 'frames') # (TESTING)
 
+# os.makedirs("test-data", exist_ok=True)
+
+
 async def trigger_alarm():
     await sio.emit('alarm_event')
 
@@ -40,6 +43,10 @@ async def frame_event(sid, data):
     if detect_intruder(name):
         print(f"Intruder detected on video frame: {name}")
         await trigger_alarm()
+        
+    # save frame to dir ./test-data
+    # with open(f"test-data/{name}", 'wb') as f:
+    #    f.write(frame)
     
     await process_frame(frame, name)
 
