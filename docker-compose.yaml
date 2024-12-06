@@ -65,13 +65,23 @@ services:
       - simulation_network
 
 # ---------- edge layer ----------
-  edge: 
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.edge
-    image: edge
-    networks:
-      - simulation_network
+  edge:
+      build:
+        context: .
+        dockerfile: docker/Dockerfile.edge
+      image: edge
+      networks:
+        - simulation_network
+      deploy:
+        resources:
+          limits:
+            cpus: '4'
+            memory: 4G
+          reservations:
+            memory: 2G
+      environment:
+        - OMP_NUM_THREADS=1
+        - MKL_NUM_THREADS=1
 
 networks:
   simulation_network:

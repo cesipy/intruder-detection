@@ -9,3 +9,9 @@
 *main.synctex.gz
 *main.fdb_latexmk
 *__pycache__
+
+*copy_indoor.py
+*download_coco.py
+src/face-detection/res/indoor_scenes
+src/face-detection/res/no-face-dataset-coco
+src/face-detection/res/non_face_indoor_scenes

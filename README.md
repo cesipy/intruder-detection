@@ -21,3 +21,9 @@ docker compose up --build   # --build forces rebuild
 # to stop all containers
 docker compose down
 ``` 
+
+
+## TODOs
+- [ ] add global config files for each layer: iot has a config_iot.py with all the parameters and global variables
+- [ ] face detection model - train own  model for detecting faces
+-

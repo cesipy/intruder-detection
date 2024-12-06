@@ -1,10 +1,31 @@
-FROM python:3-slim
+FROM python:3.9-slim
 
+
+# when torch is installed (for yolo inference) it is build from source
+# this messes us the shared obj files for opencv
 WORKDIR /app
+# workaround by installing dependencies beforehand
+# not sure if this is the best solution
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3-dev \
+    gcc \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    && rm -rf /var/lib/apt/lists/*  # Clean up to reduce image size
 
-COPY src/edge.py . 
-COPY docker/dependencies/requirements_edge.txt . 
+COPY docker/dependencies/requirements_edge.txt .
+RUN pip install --no-cache-dir -r requirements_edge.txt
 
-RUN pip install -r requirements_edge.txt
+RUN mkdir -p res/weights
+
+COPY src/edge.py .
+COPY src/yolo_detection.py .
+COPY res/weights/yolov5su.pt app/res/weights/yolov5su.pt
+COPY src/config.py . 
+
 
 CMD ["python", "-u", "edge.py"]
