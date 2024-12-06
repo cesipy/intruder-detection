@@ -2,32 +2,17 @@ import cv2
 import numpy as np
 import socketio
 import os
-import sys
-import eventlet
+import uvicorn
 
-# create folder for saving the frames (TESTING)
-dir_path = os.path.join('camera_set', 'video1')
-os.makedirs(dir_path, exist_ok=True)
+sio = socketio.AsyncServer(async_mode="asgi")
+# dir_path = os.path.join('camera_set', 'frames') # (TESTING)
 
-# create server and wrap it in wsgi server
-sio = socketio.Server()
-app = socketio.WSGIApp(sio)
+async def trigger_alarm():
+    await sio.emit('alarm_event')
 
-def trigger_alarm():
-    sio.emit('alarm_event')
+# TODO send further to cloud
+async def process_frame(frame_data, frame_name):
 
-@sio.event
-def frame_event(sid, data):
-    frame_name = data['frame_name']
-    frame_data = data['data']
-    print(f'recieved {frame_name}')
-    sys.stdout.flush()
-
-    # alarm test (TESTING: TODO fix this)
-    if detect_intruder(frame_name=frame_name):
-        trigger_alarm()
-
-    # convert back to jpg
     np_arr = np.frombuffer(frame_data, np.uint8)
     frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
@@ -45,7 +30,27 @@ def detect_intruder(frame_name: str, test_detection_freq=100):
         return True
     
 
+# TODO use sid to keep track of clients (to notify alarm what camera caught the intruder?)
+@sio.event
+async def frame_event(sid, data):
+    name = data['frame_name']
+    frame = data['data']
+    #print(f'recieved frame {name}')
+
+    # alarm trigger (TESTING)
+    if (name == 'video3_frame100.jpg'):
+        await trigger_alarm()
+    
+    await process_frame(frame, name)
+
+def main():
+    # wrap the server in asgi server and run it
+    app = socketio.ASGIApp(sio)
+    uvicorn.run(app, host="0.0.0.0", port=5000)
+
+    # create folder for saving the frames (TESTING)
+    #os.makedirs(dir_path, exist_ok=True)
+
 
 if __name__ == '__main__':
-    # start server with its own loop to handle asynchronous connections
-    eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 5000)), app)
+    main()

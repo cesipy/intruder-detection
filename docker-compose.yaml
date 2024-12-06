@@ -4,13 +4,48 @@ services:
       context: .
       dockerfile: docker/Dockerfile.cloud
     image: cloud
-  iot: 
+  camera1: 
     build:
       context: .
       dockerfile: docker/Dockerfile.iot
     depends_on:
       - edge
     image: iot
+    environment:
+      - CAMERA=video1.avi
+    networks:
+      - simulation_network
+  camera2: 
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.iot
+    depends_on:
+      - edge
+    image: iot
+    environment:
+      - CAMERA=video2.avi
+    networks:
+      - simulation_network
+  camera3: 
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.iot
+    depends_on:
+      - edge
+    image: iot
+    environment:
+      - CAMERA=video3.avi
+    networks:
+      - simulation_network
+  camera4: 
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.iot
+    depends_on:
+      - edge
+    image: iot
+    environment:
+      - CAMERA=video4.avi
     networks:
       - simulation_network
   edge: 

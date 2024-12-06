@@ -3,34 +3,40 @@ import cv2
 import socketio
 import time
 
-# open the video file 
-video_path = os.path.join('camera_set', 'video1.avi')
-video = cv2.VideoCapture(video_path)
-
-if (video.isOpened() == False):
-    print(f'Video file could not be opened on path {video_path}')
-
-# connect to the edge server 
 sio = socketio.Client()
-sio.connect('http://edge:5000')
-  
+camera_name = os.getenv('CAMERA')
 
-def send_frames():
-    i = 1
+def send_frames(video):
+    i = 1   # frame number
     while(video.isOpened()):
-        # extract frame rate from the video file
-        framerate = video.get(cv2.CAP_PROP_FPS)
+        framerate = video.get(cv2.CAP_PROP_FPS)     # extract frame rate
 
-        # parse the video into frames and send them to the server
-        retval, frame = video.read()
+        retval, frame = video.read()   # parse the video
         if retval == True:
             retval, jpg = cv2.imencode('.jpg', frame)
             data = jpg.tobytes()
-            frame_name = f"frame{i}.jpg"
+            frame_name = f"{camera_name.split('.')[0]}_frame{i}.jpg"
             sio.emit('frame_event', {'frame_name': frame_name, 'data': data})
             i += 1
             
-            # simulate the real frame rate
-            time.sleep(1/framerate)
+            time.sleep(1/framerate)  # simulate the real frame rate
 
-send_frames()
+def open_video(name):
+    print(f'opening video {name}')
+    video_path = os.path.join('camera_set', name)
+    video = cv2.VideoCapture(video_path)
+    if (video.isOpened() == False):
+        print(f'Video file could not be opened on path {video_path}')
+    
+    return video
+
+def main():
+    time.sleep(10)      # wait for server
+    sio.connect('http://edge:5000')
+
+    video = open_video(camera_name)
+    send_frames(video)
+  
+
+if __name__ == '__main__':
+    main()
