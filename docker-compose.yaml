@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile.cloud
     image: cloud
+
+# ---------- iot layer ----------
   camera1: 
     build:
       context: .
@@ -15,6 +17,7 @@ services:
       - CAMERA=video1.avi
     networks:
       - simulation_network
+
   camera2: 
     build:
       context: .
@@ -26,6 +29,7 @@ services:
       - CAMERA=video2.avi
     networks:
       - simulation_network
+
   camera3: 
     build:
       context: .
@@ -37,6 +41,7 @@ services:
       - CAMERA=video3.avi
     networks:
       - simulation_network
+
   camera4: 
     build:
       context: .
@@ -48,13 +53,7 @@ services:
       - CAMERA=video4.avi
     networks:
       - simulation_network
-  edge: 
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.edge
-    image: edge
-    networks:
-      - simulation_network
+      
   alarm:
     build:
       context: .
@@ -62,6 +61,15 @@ services:
     depends_on:
       - edge
     image: alarm
+    networks:
+      - simulation_network
+
+# ---------- edge layer ----------
+  edge: 
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.edge
+    image: edge
     networks:
       - simulation_network
 

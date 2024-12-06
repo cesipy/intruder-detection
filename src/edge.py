@@ -16,12 +16,11 @@ async def process_frame(frame_data, frame_name):
     np_arr = np.frombuffer(frame_data, np.uint8)
     frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-    # save the frames (TESTING)
-    #output_path = os.path.join(dir_path, frame_name)
-    #cv2.imwrite(output_path, frame)
+    return
     
-    
-def detect_intruder(frame_name: str, test_detection_freq=100): 
+def detect_intruder(frame_name: str, test_detection_freq: int=100): 
+    frame_name = frame_name.split("_")
+    frame_name = frame_name[1]
     frame_name = frame_name.replace("frame", "")
     frame_name = frame_name.replace(".jpg", "")
     frame_number = int(frame_name)
@@ -38,7 +37,8 @@ async def frame_event(sid, data):
     #print(f'recieved frame {name}')
 
     # alarm trigger (TESTING)
-    if (name == 'video3_frame100.jpg'):
+    if detect_intruder(name):
+        print(f"Intruder detected on video frame: {name}")
         await trigger_alarm()
     
     await process_frame(frame, name)
