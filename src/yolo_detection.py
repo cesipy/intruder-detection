@@ -1,5 +1,4 @@
 import os
-import torch 
 import pandas as pd
 
 from ultralytics import YOLO
@@ -18,22 +17,13 @@ class YoloDetection:
     
         if model_type not in ["n", "s", "m", "l", "x"]:
             raise ValueError("Invalid model type")
-        
-        torch.backends.cudnn.enabled = False
-        torch.backends.cuda.is_built = lambda: False
+
         os.environ["OMP_NUM_THREADS"] = "1"
         os.environ["MKL_NUM_THREADS"] = "1"
-        torch.set_num_threads(1)
         
         yolo_name = f"yolo5v{model_type}"
-        #self.model = YOLO("res/weights/yolov8n.pt", task="detect")
-        self.model = YOLO("yolov8n.pt")
+        self.model = YOLO("yolov8m.pt")
         self.model.cpu()
-        # self.model = torch.hub.load(
-        #     "ultralytics/yolov5", 
-        #     'custom', 
-        #     path='yolov5s.pt',)
-        # self.model =  torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 
 
     def analyze_image(self, image, confidence_threshold=0.85) -> bool:
@@ -47,14 +37,8 @@ class YoloDetection:
             bool: True if person is detected, False otherwise
         """
         try:
-            #print(image)
-            print("reached begin")
-            with torch.inference_mode():
-                results = self.model.predict(source=image, device="cpu", half=False, imgsz=320)
-            print("image was processed\n")
-            
-            #print(results)
-            
+            results = self.model(image)
+
             # should be only one result, but is wrapped in list
             for result in results: 
 
@@ -83,7 +67,6 @@ def get_imgs(dir_name: str):
 def main(): 
     imgs = get_imgs("local-test-data")
     yolo = YoloDetection()
-    
     
     preds = []
     
