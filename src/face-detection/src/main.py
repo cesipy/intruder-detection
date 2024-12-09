@@ -17,6 +17,8 @@ from cnn import CNN
 
 
 BATCH_SIZE = 10
+LEARNING_RATE = 0.001
+EPOCHS = 10
 
 class FaceDataset(Dataset):
     def __init__(self, face_tensors, non_face_tensors):
@@ -145,8 +147,6 @@ def train_one_epoch(model, train_loader, test_loader, criterion, optimizer):
     correct = 0
     total = 0
     
-
-    
     for i, batch in enumerate(train_loader):
        
         inputs, labels = batch
@@ -211,6 +211,29 @@ def validate_model(model, val_loader, report=False):
         
         return accuracy, precision
 
+def test_single_image(model, image_path):
+    transform = transforms.Compose([
+        transforms.Resize((64, 64)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                           std=[0.229, 0.224, 0.225])
+    ])
+    
+    image = Image.open(image_path).convert('RGB')
+    tensor_image = transform(image)
+    tensor_image = tensor_image.unsqueeze(0)
+    
+    model.eval()
+    with torch.no_grad():
+        output = model(tensor_image)
+        probabilities = torch.softmax(output, dim=1)
+        prediction = output.max(1)[1].item()
+        confidence = probabilities[0][prediction].item()
+        
+    return prediction, confidence
+
+
+
 def main():
     # load imgs
     face_imgs = load_all_face_images()
@@ -238,11 +261,23 @@ def main():
     
     model = CNN()
     criterion = nn.CrossEntropyLoss()
-    optim = torch.optim.Adam(model.parameters(), lr=0.001)
+    optim = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
     
-    model = train_model(model, train_loader, val_loader, criterion, optim, num_epochs=10)
+    model = train_model(model, train_loader, val_loader, criterion, optim, num_epochs=EPOCHS)
     validate_model(model, val_loader, report=True)
     
+    new_img_no_face1_path = "src/face-detection/res/own-test-images/no_face1.jpg"
+    new_img_face1_path    = "src/face-detection/res/own-test-images/face1.jpg"
+    new_img_no_face2_path = "src/face-detection/res/own-test-images/no_face2.jpg"
+    new_img_face2_path    = "src/face-detection/res/own-test-images/face2.jpg"
+    test_list = [new_img_no_face1_path, new_img_face1_path, new_img_no_face2_path, new_img_face2_path]
+
+    for img_path in test_list:
+        prediction, confidence = test_single_image(model, img_path)
+        result = "Face" if prediction == 1 else "Non-face"
+        print(f"\nImage: {img_path}")
+        print(f"Prediction: {result}")
+        print(f"Confidence: {confidence:.2%}")
     
 main()
