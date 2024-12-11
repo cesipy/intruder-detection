@@ -11,12 +11,12 @@ class ResNetWrapper(nn.Module):
         # freeze layers that they are not finetuned: 
         for name, param in self.model.named_parameters():
             if "fc" not in name:  # fc is the final classifier layer
-                param.requires_grad = False
+                param.requires_grad = True
         
             
         #if layer4 should be finetuned: 
         # for param in self.model.layer4.parameters():
-        #     param.requires_grad = False
+        #     param.requires_grad = True
         
         # get dimension of input for previous classifier
         self.in_features = self.model.fc.in_features

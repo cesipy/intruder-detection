@@ -26,6 +26,34 @@ EPOCHS = 5
 DROPOUT_PROB = 0.5
 HIDDEN_DIM   = 128
 
+
+# transforms_train =  transforms.Compose([
+#     transforms.Resize((224, 224)),
+#     transforms.ToTensor(),
+#     transforms.Normalize(mean=[0.485, 0.456, 0.406],
+#                        std=[0.229, 0.224, 0.225])
+#     ])
+transforms_train = transforms.Compose([
+    transforms.Resize((224,224)),
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.RandomRotation(30),  # Increase rotation
+    transforms.ColorJitter(
+        brightness=0.3, 
+        contrast=0.3, 
+        saturation=0.3, 
+        hue=0.1
+    ),
+    transforms.RandomAffine(
+        degrees=30, 
+        translate=(0.2, 0.2), 
+        scale=(0.8, 1.2)  # Add scale variation
+    ),
+    transforms.RandomPerspective(p=0.5),  # Add perspective changes
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                       std=[0.229, 0.224, 0.225])
+])
+
 class FaceDataset(Dataset):
     def __init__(self, face_tensors, non_face_tensors):
         # Combine face and non-face tensors
@@ -50,18 +78,7 @@ def load_all_face_images():
     also performs data augmentaiton.
     """
     dirname = "src/face-detection/res/faces_dataset"
-    transform = transforms.Compose([
-        #transforms.Resize((64, 64)),
-        transforms.Resize((224,224)),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation(15),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2),
-        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                           std=[0.229, 0.224, 0.225])
-    ])
-    
+
     face_images = []
     for img in os.listdir(dirname):
         if img.endswith(".jpg"):
@@ -69,8 +86,8 @@ def load_all_face_images():
             image = Image.open(img_path).convert('RGB')
             # data augmentaion for the images
             # maybe do it in separate function?
-            for _ in range(3):  # Create 3 augmented versions
-                tensor_image = transform(image)
+            for _ in range(10):  # Create 3 augmented versions
+                tensor_image = transforms_train(image)
                 face_images.append(tensor_image)
             
     face_tensors = torch.stack(face_images)
@@ -84,18 +101,7 @@ def load_all_non_face_images():
     same as the `load_all_face_images` but for the non-face dataset"""
     dirname = "src/face-detection/res/no_face_dataset"
     
-    transform = transforms.Compose([
-        #transforms.Resize((64, 64)),
-        transforms.Resize((224,224)),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation(15),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2),
-        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                           std=[0.229, 0.224, 0.225])
-    ])
-    
+        
     non_face_images = []
     
     for img in os.listdir(dirname):
@@ -103,8 +109,8 @@ def load_all_non_face_images():
             img_path = os.path.join(dirname, img)
             image = Image.open(img_path).convert('RGB')
             # again, here is data augmentation  -> move in separate function
-            for _ in range(3):  
-                tensor_image = transform(image)
+            for _ in range(1):  
+                tensor_image = transforms_train(image)
                 non_face_images.append(tensor_image)
             
     non_face_tensors = torch.stack(non_face_images)
@@ -236,7 +242,7 @@ def test_single_image(model, image_path):
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                           std=[0.229, 0.224, 0.225])
+                        std=[0.229, 0.224, 0.225])
     ])
     
     image = Image.open(image_path).convert('RGB')
@@ -246,6 +252,7 @@ def test_single_image(model, image_path):
     model.eval()
     with torch.no_grad():
         output = model(tensor_image)
+        print(f"Raw output: {output}")  # Add this to see raw logits
         probabilities = torch.softmax(output, dim=1)
         prediction = output.max(1)[1].item()
         confidence = probabilities[0][prediction].item()
@@ -279,8 +286,8 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
     
-    model = CNN()
-    #model = ResNetWrapper(dropout_prob=DROPOUT_PROB, hidden_dim=HIDDEN_DIM)
+    #model = CNN()
+    model = ResNetWrapper(dropout_prob=DROPOUT_PROB, hidden_dim=HIDDEN_DIM)
     criterion = nn.CrossEntropyLoss()
     optim = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
@@ -289,10 +296,12 @@ def main():
     validate_model(model, val_loader, report=True)
     
     new_img_no_face1_path = "src/face-detection/res/own-test-images/no_face1.jpg"
-    new_img_face1_path    = "src/face-detection/res/own-test-images/face1.jpg"
     new_img_no_face2_path = "src/face-detection/res/own-test-images/no_face2.jpg"
+    new_img_no_face3_path = "src/face-detection/res/own-test-images/no_face3.jpg"
+    new_img_face1_path    = "src/face-detection/res/own-test-images/face1.jpg"
     new_img_face2_path    = "src/face-detection/res/own-test-images/face2.jpg"
-    test_list = [new_img_no_face1_path, new_img_face1_path, new_img_no_face2_path, new_img_face2_path]
+    new_img_face3_path    = "src/face-detection/res/own-test-images/face3.jpg"
+    test_list = [new_img_no_face1_path, new_img_face1_path, new_img_no_face2_path, new_img_face2_path, new_img_no_face3_path, new_img_face3_path]
 
     for img_path in test_list:
         prediction, confidence = test_single_image(model, img_path)
