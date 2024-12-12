@@ -67,9 +67,9 @@ class EdgeServer:
         
         if self.person_detection.analyze_image(frame_dec):
             print("Person detected")
-            #await self.process_frame(frame, name)
+            await self.process_frame(frame, name)       # send to cloud
         else:
-            print("No person detected")
+            print("Nothing detected")
         
 # dir_path = os.path.join('camera_set', 'frames') # (TESTING)
 # os.makedirs("test-data", exist_ok=True)

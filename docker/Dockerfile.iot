@@ -3,6 +3,7 @@ FROM python:3-slim
 WORKDIR /app
 
 COPY src/iot.py . 
+COPY src/utils.py .
 COPY docker/dependencies/requirements_iot.txt . 
 COPY camera_set ./camera_set
 
