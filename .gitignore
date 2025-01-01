@@ -16,3 +16,5 @@ src/face-detection/res/indoor_scenes
 src/face-detection/res/no-face-dataset-coco
 src/face-detection/res/non_face_indoor_scenes
 
+# dont want to include the current aws credentials in git
+res/credentials/creds.yaml

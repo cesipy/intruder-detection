@@ -4,9 +4,10 @@ import socketio
 import os
 import uvicorn
 from pathlib import Path
+import requests
 
 from yolo_detection import YoloDetection
-from config import DEBUGGING
+from config import DEBUGGING, CLOUD_CREDENTIALS_PATH, CLOUD_URL, DETECT_INTRUDER_PATH
 
 class EdgeServer:
     def __init__(self):
@@ -29,7 +30,36 @@ class EdgeServer:
     async def process_frame(self, frame_data, frame_name):
         np_arr = np.frombuffer(frame_data, np.uint8)
         frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-
+        
+        print(f"type of frame in process_frame: {type(frame)}")
+        
+        files = {
+            "img": ("frame.jpg", frame_data, "image/jpeg")  # Match the cloud's expected 'img' key
+        }
+        data = {
+            "device_id": 1      # TODO: fill in device id, but dont think this is really necessary
+        }
+        
+        print(f"trying to connect to {CLOUD_URL}/{DETECT_INTRUDER_PATH}")
+        ret = requests.post(
+            f"{CLOUD_URL}/{DETECT_INTRUDER_PATH}",        # how to setup ip in docker for this
+            files=files, 
+            data=data,
+            timeout=10,
+        )
+        if ret.status_code == 200: 
+            resonse = ret.json()
+            is_intruder_detected = resonse.get("result")
+            if is_intruder_detected: 
+                print("Intruder detected, sending notification to alarm")
+                await self.trigger_alarm()
+            
+        print(f"response from cloud: {ret}")
+        
+        
+        
+        
+        
         return
         
     def detect_intruder_test(self, frame_name: str, test_detection_freq: int=100): 
@@ -49,9 +79,9 @@ class EdgeServer:
         if DEBUGGING:
             print(f'recieved frame {name}')
             # alarm trigger (TESTING)
-            if self.detect_intruder_test(name):
-                print(f"Intruder detected on video frame: {name}")
-                await self.trigger_alarm()
+            # if self.detect_intruder_test(name):
+            #     print(f"Intruder detected on video frame: {name}")
+            #     await self.trigger_alarm()
                 
         
         # save frame to dir ./test-data

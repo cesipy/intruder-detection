@@ -1,10 +1,4 @@
 services: 
-  cloud: 
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.cloud
-    image: cloud
-
 # ---------- iot layer ----------
   camera1: 
     build:
@@ -72,6 +66,8 @@ services:
       image: edge
       networks:
         - simulation_network
+        - simulation_network_edge_cloud
+  
       deploy:
         resources:
           limits:
@@ -83,6 +79,20 @@ services:
         - OMP_NUM_THREADS=1
         - MKL_NUM_THREADS=1
 
+# ---------- cloud layer ----------
+
+  cloud: 
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.cloud
+    image: cloud
+    networks:
+      - simulation_network_edge_cloud
+
 networks:
   simulation_network:
     driver: bridge
+
+  simulation_network_edge_cloud:
+    driver: bridge
+

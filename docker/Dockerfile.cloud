@@ -1,9 +1,13 @@
 FROM python:3-slim
 
 WORKDIR /app
+RUN apt-get update && apt-get install -y curl
 
 COPY src/cloud.py . 
 COPY docker/dependencies/requirements_cloud.txt . 
+COPY res/credentials/creds.yaml res/credentials/creds.yaml
+COPY src/config.py .
+
 
 RUN pip install -r requirements_cloud.txt
 
