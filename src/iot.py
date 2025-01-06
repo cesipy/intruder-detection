@@ -9,7 +9,7 @@ from utils import Frame
 
 # TODO: place in config
 EMIT_FAILURE_DELAY = 1.0        # 1 sec
-INITIAL_DELAY      = 20.0
+INITIAL_DELAY      = 30.0
 
 class Iot:
     def __init__(self):

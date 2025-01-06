@@ -23,7 +23,15 @@ docker compose down
 ``` 
 
 
+## Current issues
+The iots have to wait 30 secs (defined in `INITIAL_DELAY`) before connecting to the edge. this is because of the overhead on the edge to download the weights of yolo model. 
+
+
+
+
+
 ## TODOs
 - [ ] add global config files for each layer: iot has a config_iot.py with all the parameters and global variables
 - [ ] face detection model - train own  model for detecting faces
--
+- [ ] write documentation/good comments for credentials handling for `src/cloud.py` 
+- [ ] need to upload credentials to cloud instance, so boto-python is working
