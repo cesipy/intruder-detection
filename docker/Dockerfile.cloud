@@ -11,7 +11,7 @@ COPY src/cloud.py .
 COPY res/credentials/creds.yaml res/credentials/creds.yaml
 COPY src/config.py .
 
-COPY
+COPY res/credentials/.aws/credentials /root/.aws/credentials
 
 
 

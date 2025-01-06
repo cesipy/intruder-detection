@@ -27,39 +27,38 @@ class Cloud:
             return yaml.safe_load(file)
         
     def _init_rekognition_client(self):
-        aws_access_key_id = self.credentials_config['aws_access_key_id']
+        aws_access_key_id     = self.credentials_config['aws_access_key_id']
         aws_secret_access_key = self.credentials_config['aws_secret_access_key']
+        aws_session_token     = self.credentials_config['aws_session_token']
         region_name = AWS_REGION_NAME
         
         return boto3.client(
             'rekognition', 
             region_name=region_name, 
             aws_access_key_id=aws_access_key_id, 
-            aws_secret_access_key=aws_secret_access_key
+            aws_secret_access_key=aws_secret_access_key, 
+            aws_session_token=aws_session_token,
         )
         
-    def process_image(self, img: bytearray) -> bool:
+    def process_image(self, img: bytes) -> bool:
         try:
             if DEBUGGING:
-                if random.random()<= 0.5:
-                    print("simulation of rekognition returned intruder!")
-                    return True
-            else: 
-                return False
-            
+                return random.random() <= 0.5
+
             response = self.rekognition_client.detect_labels(
-                Image={
-                    'Bytes': img
-                }
+                Image={'Bytes': img},
+                MinConfidence=90
             )
             
-            return True         # only temporary
-        except Exception as e:
-            print(f"processing image with rekognition did not work, probably credentials for aws are incorrect!")
-            print(e)
+            for label in response['Labels']:
+                if label['Name'] in ['Person', 'Human'] and label['Confidence'] > 90:
+                    print(f"Person detected with confidence: {label['Confidence']}%")
+                    return True
+            return False
             
-        return False
-
+        except Exception as e:
+            print(f"Processing error: {e}")
+            return False
 
 
 @app.route(f"/{DETECT_INTRUDER_PATH}", methods=["POST"])
@@ -69,7 +68,7 @@ def detect_intruder():
     if not img: 
         return flask.jsonify({"error": "no image provided"}), 400
     
-    img_bytes = img.read()
+    img_bytes = img.read()      # convert to bytes, so we can send it to rekognition
     
     result = cloud.process_image(img_bytes)
     
@@ -88,7 +87,7 @@ def main():
     global cloud        # as the global var is not initialized, here we have to explicitly call the global var
     cloud = Cloud()
 
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000)      # TODO: move port to config
         
         
 if __name__ == '__main__': 

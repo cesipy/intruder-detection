@@ -1,5 +1,5 @@
 # debugging: print everything, verbose "logging"
-DEBUGGING = True
+DEBUGGING = False
 
 CLOUD_URL              = "http://cloud:5000"
 CLOUD_CREDENTIALS_PATH = "res/credentials/creds.yaml"

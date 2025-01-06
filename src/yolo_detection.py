@@ -25,8 +25,8 @@ class YoloDetection:
         self.model = YOLO("yolov8m.pt")
         self.model.cpu()
 
-
-    def analyze_image(self, image, confidence_threshold=0.85) -> bool:
+    #TODO: make confidence_threshold customizable in config
+    def analyze_image(self, image, confidence_threshold=0.5) -> bool:
         """
         analyzes an image and returns a boolen value indicating whether a person is detected.
         

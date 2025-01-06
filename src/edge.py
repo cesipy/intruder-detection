@@ -27,14 +27,9 @@ class EdgeServer:
         await self.sio.emit('alarm_event')
 
     # TODO send further to cloud
-    async def process_frame(self, frame_data, frame_name):
-        np_arr = np.frombuffer(frame_data, np.uint8)
-        frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-        
-        print(f"type of frame in process_frame: {type(frame)}")
-        
+    async def process_frame(self, frame_data: bytes, frame_name):
         files = {
-            "img": ("frame.jpg", frame_data, "image/jpeg")  # Match the cloud's expected 'img' key
+            "img": ("frame.jpg", frame_data, "image/jpeg")      # frame data is in bytes, so this is transfered in bytes to the cloud
         }
         data = {
             "device_id": 1      # TODO: fill in device id, but dont think this is really necessary
@@ -50,16 +45,12 @@ class EdgeServer:
         if ret.status_code == 200: 
             resonse = ret.json()
             is_intruder_detected = resonse.get("result")
+            print(f"is_intruder_detected: {is_intruder_detected}")
             if is_intruder_detected: 
                 print("Intruder detected, sending notification to alarm")
                 await self.trigger_alarm()
             
         print(f"response from cloud: {ret}")
-        
-        
-        
-        
-        
         return
         
     def detect_intruder_test(self, frame_name: str, test_detection_freq: int=100): 
@@ -101,8 +92,6 @@ class EdgeServer:
         else:
             print("Nothing detected")
         
-# dir_path = os.path.join('camera_set', 'frames') # (TESTING)
-# os.makedirs("test-data", exist_ok=True)
 
 
 
