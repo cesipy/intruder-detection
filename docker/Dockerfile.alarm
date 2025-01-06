@@ -2,9 +2,11 @@ FROM python:3-slim
 
 WORKDIR /app
 
-COPY src/alarm.py . 
+#all dependencies before copying -> this layer has to be changed less freq.
 COPY docker/dependencies/requirements_alarm.txt . 
-
 RUN pip install -r requirements_alarm.txt
+
+COPY src/alarm.py . 
+
 
 CMD ["python", "-u", "alarm.py"]

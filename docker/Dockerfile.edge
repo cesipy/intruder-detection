@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     libxrender-dev \
     && rm -rf /var/lib/apt/lists/*  # Clean up to reduce image size
 
+#all dependencies before copying -> this layer has to be changed less freq.
 COPY docker/dependencies/requirements_edge.txt .
 RUN pip install --no-cache-dir -r requirements_edge.txt
 

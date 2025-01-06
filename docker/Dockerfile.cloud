@@ -3,12 +3,16 @@ FROM python:3-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y curl
 
-COPY src/cloud.py . 
+# install dependencies before copying -> this layer has to be changed less freq.
 COPY docker/dependencies/requirements_cloud.txt . 
+RUN pip install -r requirements_cloud.txt
+
+COPY src/cloud.py . 
 COPY res/credentials/creds.yaml res/credentials/creds.yaml
 COPY src/config.py .
 
+COPY
 
-RUN pip install -r requirements_cloud.txt
+
 
 CMD ["python", "-u", "cloud.py"]
