@@ -36,3 +36,4 @@ The iots have to wait 30 secs (defined in `INITIAL_DELAY`) before connecting to 
 - [ ] write documentation/good comments for credentials handling for `src/cloud.py` 
 - [ ] need to upload credentials to cloud instance, so boto-python is working
 - [ ] adjust process_image  in `src/cloud.py` to detect unknown persons.
+- [ ] make collection name in cloud a configurable param

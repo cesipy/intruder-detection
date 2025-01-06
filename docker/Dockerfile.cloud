@@ -14,5 +14,7 @@ COPY src/config.py .
 COPY res/credentials/.aws/credentials /root/.aws/credentials
 
 
+# known people for intruder detection
+COPY res/iot_resources/known_faces /app/res/known_faces
 
 CMD ["python", "-u", "cloud.py"]
