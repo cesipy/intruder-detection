@@ -9,6 +9,7 @@ RUN pip install -r requirements_iot.txt
 
 COPY src/iot.py . 
 COPY src/utils.py .
+COPY src/config.py . 
 COPY res/iot_resources/camera_set ./camera_set
 
 

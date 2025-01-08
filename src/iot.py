@@ -5,17 +5,16 @@ import time
 
 import socketio.exceptions
 
+from config import *
+
 from utils import Frame
 
-# TODO: place in config
-EMIT_FAILURE_DELAY = 1.0        # 1 sec
-INITIAL_DELAY      = 30.0
 
 class Iot:
     def __init__(self):
         self.sio = socketio.Client()
         self.camera_name = os.getenv('CAMERA')
-        self.emit_retry_number = 3      # TODO: put this in configuration
+        self.emit_retry_number = EMIT_RETRY_NUMBER
         
             
     def _send_frame(self, frame: Frame) -> bool:
@@ -35,7 +34,7 @@ class Iot:
                 time.sleep(EMIT_FAILURE_DELAY)
                 
                 try: 
-                    self.sio.connect('http://edge:5000')
+                    self.sio.connect(EDGE_URL)
                 except Exception as e:
                     print(f'Error: {e}')
                 
@@ -44,7 +43,7 @@ class Iot:
                 time.sleep(EMIT_FAILURE_DELAY)
                 
                 try: 
-                    self.sio.connect('http://edge:5000')
+                    self.sio.connect(EDGE_URL)
                 except Exception as e:
                     print(f'Error: {e}')
         # was not successful
@@ -83,7 +82,7 @@ def main():
     time.sleep(INITIAL_DELAY)      # wait for server, maybe put in init function of Iot
     iot = Iot()
     video = open_video(iot.camera_name)
-    iot.sio.connect('http://edge:5000')
+    iot.sio.connect(EDGE_URL)
 
     iot.process_frames(video)
 

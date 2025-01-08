@@ -1,8 +1,8 @@
 import socketio
 import time
 
-# TODO: place in config
-INITIAL_DELAY      = 30.0
+from config import * 
+
 
 sio = socketio.Client()
 
@@ -12,7 +12,7 @@ def alarm_event():
 
 def main():
     time.sleep(INITIAL_DELAY)  # wait for the server to be set up
-    sio.connect('http://edge:5000')
+    sio.connect(EDGE_URL)
     print('connected to server', flush=True)
 
     sio.wait()  # wait for events 

@@ -13,6 +13,8 @@ from config import *
 app = flask.Flask(__name__)
 cloud = None
 
+
+
 class Cloud:
     
     def __init__(self,) -> None: 
@@ -66,13 +68,16 @@ class Cloud:
             return False
         
     def is_face_in_collection(self, image: bytes) -> bool:
+        # simulate face detection to avoid aws connection for testing
+        if DEBUGGING: 
+            return random.random() <= 0.5
         
         try:
             faces = self.rekognition_client.search_faces_by_image(
-                CollectionId='known_persons',
+                CollectionId=REKOGNITION_COLLECTION_NAME,
                 Image={'Bytes': image},
                 MaxFaces=1,
-                FaceMatchThreshold=90
+                FaceMatchThreshold=FACE_MATCH_THRESHOLD,
             )
             print(f"faces: {faces}")
             
@@ -85,12 +90,12 @@ class Cloud:
         
     def create_collection(self) -> bool:
         try:
-            self.rekognition_client.create_collection(CollectionId="known_persons")
-            print("successfully created collection 'known_persons'")
+            self.rekognition_client.create_collection(CollectionId=REKOGNITION_COLLECTION_NAME)
+            print("successfully created collection 'REKOGNITION_COLLECTION_NAME'")
             return True
 
         except self.rekognition_client.exceptions.ResourceAlreadyExistsException:
-            print("Collection 'known_persons' already exists")
+            print("Collection 'REKOGNITION_COLLECTION_NAME' already exists")
             return False
         except Exception as e:
             print(f"Error creating collection: {e}")
@@ -99,7 +104,7 @@ class Cloud:
     def add_known_face(self, image:bytes):
         try:
             response = self.rekognition_client.index_faces(
-                CollectionId="known_persons",
+                CollectionId=REKOGNITION_COLLECTION_NAME,
                 Image={'Bytes': image},
             )
             return response
@@ -143,19 +148,17 @@ def detect_intruder():
     response = {"result": result}
     return flask.jsonify(response)
     
-    
-    
-
-
 @app.route("/health", methods=["GET"])
 def health_check():
     return flask.jsonify({"status": "healthy"})
+
+
 
 def main():
     global cloud        # as the global var is not initialized, here we have to explicitly call the global var
     cloud = Cloud()
 
-    app.run(host="0.0.0.0", port=5000)      # TODO: move port to config
+    app.run(host="0.0.0.0", port=FLASK_PORT)     
         
         
 if __name__ == '__main__': 
