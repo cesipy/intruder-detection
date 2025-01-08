@@ -7,12 +7,13 @@ import flask
 from typing import List
 
 from config import *
+from logger import Logger
 
 
 # global vars feel very bad here, but didnt manage to get other non-global-var solutions running
 app = flask.Flask(__name__)
 cloud = None
-
+logger = Logger()
 
 
 class Cloud:
@@ -24,7 +25,7 @@ class Cloud:
         #upload faces to known faces on rekognition
         self.create_collection()
         self.add_known_faces(KNOWN_FACES_PATH)
-        print("successfully initialized cloud")
+        logger.info("Initialized cloud service")
         
     
     def _load_credentials_configuration(self) -> dict:

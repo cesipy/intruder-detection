@@ -48,3 +48,4 @@ The iots have to wait 30 secs (defined in `INITIAL_DELAY`) before connecting to 
 - [x] adjust process_image  in `src/cloud.py` to detect unknown persons.
 - [x] make collection name in cloud a configurable param
 - [ ] logging
+- [ ] person tracking with yolo

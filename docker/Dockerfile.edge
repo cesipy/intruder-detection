@@ -22,11 +22,13 @@ COPY docker/dependencies/requirements_edge.txt .
 RUN pip install --no-cache-dir -r requirements_edge.txt
 
 RUN mkdir -p res/weights
+RUN mkdir -p /app/logs
 
 COPY src/edge.py .
 COPY src/yolo_detection.py .
 COPY res/weights/yolov5su.pt app/res/weights/yolov5su.pt
 COPY src/config.py . 
+COPY src/logger.py .
 
 
 CMD ["python", "-u", "edge.py"]

@@ -10,6 +10,9 @@ RUN pip install -r requirements_cloud.txt
 COPY src/cloud.py . 
 COPY res/credentials/creds.yaml res/credentials/creds.yaml
 COPY src/config.py .
+COPY src/logger.py .
+
+RUN mkdir -p /app/logs
 
 COPY res/credentials/.aws/credentials /root/.aws/credentials
 

@@ -19,3 +19,6 @@ src/face-detection/res/non_face_indoor_scenes
 # dont want to include the current aws credentials in git
 res/credentials/creds.yaml
 res/credentials/.aws/credentials
+
+# logs collected from docker after running are stored here.
+res/collected_logs

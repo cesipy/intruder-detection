@@ -6,8 +6,11 @@ WORKDIR /app
 COPY docker/dependencies/requirements_alarm.txt . 
 RUN pip install -r requirements_alarm.txt
 
+RUN mkdir -p /app/logs
+
 COPY src/config.py . 
 COPY src/alarm.py . 
+COPY src/logger.py .
 
 
 CMD ["python", "-u", "alarm.py"]
