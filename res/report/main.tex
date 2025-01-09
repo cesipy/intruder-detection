@@ -30,23 +30,38 @@ The video files are stored in camera containers running on EC2 instances \ref{fi
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=1\linewidth]{res/report/DS_architecture_version2.png}
+    %\includegraphics[width=1\linewidth]{res/report/DS_architecture_version2.png}
+    \includegraphics[width=1\linewidth]{DS_architecture_version2.png}
     \caption{Example of your architectural diagram.}
     \label{fig:architecture}
 \end{figure}
 
-The edge layer consists of two EC2 instances simulating edge devices in different locations. At the edge, the video data is processed using the YOLO (You Only Look Once) algorithm to detect objects and people. When a person-like object is detected, the relevant data is forwarded to AWS Lambda in the cloud, ensuring the system can scale dynamically based on demand.
+The edge layer consists of two EC2 instances simulating edge devices in different locations. At the edge, the video data is processed using the YOLO (You Only Look Once) algorithm to detect objects and people. When a person-like object is detected, the relevant data is forwarded to a separate instance in the cloud, ensuring the system can scale dynamically based on demand.
 
-The cloud layer integrates with Amazon Rekognition to perform facial recognition, comparing the detected face against a collection of known individuals. If an unknown person is identified, Lambda triggers an alert, which is sent back to the edge device and activates the alarm in the IoT layer. This architecture reduces the workload on the cloud, minimizes latency, and ensures the system can handle large volumes of video data in a responsive and efficient manner, making it a robust solution for surveillance applications.
+The cloud layer integrates with Amazon Rekognition to perform facial recognition, comparing the detected face against a collection of known individuals. If an unknown person is identified, the cloud server triggers an alert, which is sent back to the edge device and activates the alarm in the IoT layer. This architecture reduces the workload on the cloud, minimizes latency, and ensures the system can handle large volumes of video data in a responsive and efficient manner, making it a robust solution for surveillance applications.
 
 
 
 \section{Implementation details}
+In our experiment the architecture is as follows.
+
 The IoT layer is represented by 4 camera containers and one alarm container for each edge device. The simulation video comes from set\_3 of WiseNET dataset, which potrays two people appearing in differnt times on the scene. One person can simulate the intruder and the other an employee. 
+
+In order to classifiy intruders, we randomly selected a person and captured several screenshots of the person's face. Those screenshots are uploaded to an AWS Rekognition dataset and used to compare the faces detected by the edge device. The provisioning of the collection and known faces images is done at each start of the cloud server using the boto3 Python package.
+
 
 While all camera containers will include the whole set of videos, each will select only one based on an environment variable bound to the container. This video is then processed using OpenCV read() function, which returns the sequence of frames. Those are then sent using Socket.IO library to the edge device in an interval simulating the real frame rate. 
 
 The alarm container also connects to the edge server and waits for an event, that will trigger it.
+
+The edge device is an EC2 instance running the YOLO algorithm. The algorithm is implemented in Python and uses the OpenCV library to process the frames. The YOLO algorithm is capable of detecting objects and people in the frames. When a person-like object is detected, the relevant data is sent to the cloud server using a REST API. Images from the IOT layer are received by the edge device using the Socket.IO library. 
+
+In the cloud layer, we implemented a REST API using Python's Flask package to receive images from the edge layer. Here, HTTP requests are handled. Those images are directly sent to Rekognition for facial recognition. The result of the image processing is returned in the HTTP response. If an unknown person is detected, an alert is triggered, the edge layer is informed by the HTTP response and the alarm is activated.
+
+Our assumption for the network is that we have several cameras at a location connected to a single edge device. Therefore, the edge device manages multiple cameras, but only one alarm. The cloud layer is assumed to be able to handle multiple edge devices. 
+When there is an intruder in one location, the Cloud informs the corresponding edge device to activate the alarm. 
+
+
 
 
 \section{Evaluation}

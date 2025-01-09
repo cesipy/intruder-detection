@@ -1,13 +1,16 @@
 import cv2
 import numpy as np
 import socketio
-import os
+
 import uvicorn
 from pathlib import Path
 import requests
 
 from yolo_detection import YoloDetection
-from config import DEBUGGING, CLOUD_CREDENTIALS_PATH, CLOUD_URL, DETECT_INTRUDER_PATH
+from config import *
+from logger import Logger
+
+logger = Logger()
 
 class EdgeServer:
     def __init__(self):
@@ -26,7 +29,7 @@ class EdgeServer:
     async def trigger_alarm(self, ):
         await self.sio.emit('alarm_event')
 
-    # TODO send further to cloud
+
     async def process_frame(self, frame_data: bytes, frame_name):
         files = {
             "img": ("frame.jpg", frame_data, "image/jpeg")      # frame data is in bytes, so this is transfered in bytes to the cloud
@@ -35,7 +38,7 @@ class EdgeServer:
             "device_id": 1      # TODO: fill in device id, but dont think this is really necessary
         }
         
-        print(f"trying to connect to {CLOUD_URL}/{DETECT_INTRUDER_PATH}")
+        #print(f"trying to connect to {CLOUD_URL}/{DETECT_INTRUDER_PATH}")
         ret = requests.post(
             f"{CLOUD_URL}/{DETECT_INTRUDER_PATH}",        # how to setup ip in docker for this
             files=files, 
@@ -45,12 +48,14 @@ class EdgeServer:
         if ret.status_code == 200: 
             resonse = ret.json()
             is_intruder_detected = resonse.get("result")
-            print(f"is_intruder_detected: {is_intruder_detected}")
+            logger.info(f"response from cloud: {resonse}, is_intruder_detected: {is_intruder_detected}")
+            #print(f"is_intruder_detected: {is_intruder_detected}")
             if is_intruder_detected: 
-                print("Intruder detected, sending notification to alarm")
+                #print("Intruder detected, sending notification to alarm")
+                logger.info("Intruder detected, sending notification to alarm")
                 await self.trigger_alarm()
             
-        print(f"response from cloud: {ret}")
+        #print(f"response from cloud: {ret}")
         return
         
     def detect_intruder_test(self, frame_name: str, test_detection_freq: int=100): 
@@ -84,13 +89,16 @@ class EdgeServer:
         
         if frame_dec is None:
             print(f"Failed to decode frame: {name}")
+            logger.error(f"Failed to decode frame: {name}")
             #return
         
         if self.person_detection.analyze_image(frame_dec):
             print("Person detected")
+            logger.info("Person detected")
             await self.process_frame(frame, name)       # send to cloud
         else:
             print("Nothing detected")
+            logger.info("Nothing detected")
         
 
 
@@ -100,7 +108,7 @@ def main():
     
     # wrap the server in asgi server and run it
     app = socketio.ASGIApp(edge.sio)
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=UVICORN_PORT)
 
     # create folder for saving the frames (TESTING)
     #os.makedirs(dir_path, exist_ok=True)
