@@ -33,8 +33,20 @@ docker compose down
 ``` 
 
 
-## Current issues
-The iots have to wait 30 secs (defined in `INITIAL_DELAY`) before connecting to the edge. this is because of the overhead on the edge to download the weights of yolo model. 
+## Collection of logs
+After the docker containers run and the simulation produced sufficient logs, the logs in the corresponding directories in the containers `/app/logs` can be collected to the local host. Here the script `collect_logs.sh` comes into play. 
+
+```bash
+# if permissions are not right, change them (+x)
+docker compose up --build 
+# ...
+# simulation runs for a few minutes
+# ...
+
+#after simulation stopped, run, saves logs to `res/collected_logs`
+./collect_logs.sh
+
+```
 
 
 
@@ -47,7 +59,7 @@ The iots have to wait 30 secs (defined in `INITIAL_DELAY`) before connecting to 
 - [x] need to upload credentials to cloud instance, so boto-python is working
 - [x] adjust process_image  in `src/cloud.py` to detect unknown persons.
 - [x] make collection name in cloud a configurable param
-- [ ] logging
+- [x] logging
 - [ ] person tracking with yolo
 - [ ] handle errors in flask app (with decorators, i guess?)
 - [ ] limit frame sending in iot. not every frame has to be sended, maybe just one frame every second. 
