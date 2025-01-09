@@ -3,13 +3,12 @@ import inspect
 import os
 
 FILENAME_PREFIX = "logs/log_"
-PERFORMANCE_LOG_FILENAME_PREFIX = "logs/performance-logs/performance_"
+
 
 class Logger:
     def __init__(self):
         today = datetime.datetime.today().strftime("%Y-%m-%d")
         self.filename = FILENAME_PREFIX + today + ".txt"
-        self.performance_filename = PERFORMANCE_LOG_FILENAME_PREFIX + today + ".txt"
 
     def info(self, message: str) -> None:
         self._log("info", message)
@@ -20,8 +19,7 @@ class Logger:
     def error(self, message: str) -> None:
         self._log("error", message)
 
-    def performance(self, message: str) -> None:
-        self._performance_log(message)
+
 
     def _log(self, tag: str, message: str) -> None:
         timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -29,13 +27,6 @@ class Logger:
         caller_info: str = self._get_caller_info()
         log_entry: str = f"{timestamp} - {tag_padded} - {caller_info} - {message}\n"
         with open(self.filename, "a") as f:
-            f.write(log_entry)
-
-    def _performance_log(self, message: str) -> None:
-        timestamp: str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        caller_info: str = self._get_caller_info()
-        log_entry: str = f"{timestamp} - {caller_info} - {message}\n"
-        with open(self.performance_filename, "a") as f:
             f.write(log_entry)
             
     def _get_caller_info(self):

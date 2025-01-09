@@ -22,9 +22,10 @@ class Cloud:
         self.credentials_config = self._load_credentials_configuration()
         self.rekognition_client = self._init_rekognition_client()
 
-        #upload faces to known faces on rekognition
-        self.create_collection()
-        self.add_known_faces(KNOWN_FACES_PATH)
+        if not DEBUGGING:
+            #upload faces to known faces on rekognition
+            self.create_collection()
+            self.add_known_faces(KNOWN_FACES_PATH)
         logger.info("Initialized cloud service")
         
     
@@ -35,6 +36,9 @@ class Cloud:
             return yaml.safe_load(file)
         
     def _init_rekognition_client(self):
+        if DEBUGGING: 
+            return None     # dont need this
+        
         aws_access_key_id     = self.credentials_config['aws_access_key_id']
         aws_secret_access_key = self.credentials_config['aws_secret_access_key']
         aws_session_token     = self.credentials_config['aws_session_token']
@@ -60,11 +64,13 @@ class Cloud:
             
             for label in response['Labels']:
                 if label['Name'] in ['Person', 'Human'] and label['Confidence'] > 90:
+                    logger.info(f"Person detected with confidence: {label['Confidence']}%")
                     print(f"Person detected with confidence: {label['Confidence']}%")
                     return True
             return False
             
         except Exception as e:
+            logger.error(f"Processing error: {e}")
             print(f"Processing error: {e}")
             return False
         
@@ -80,11 +86,12 @@ class Cloud:
                 MaxFaces=1,
                 FaceMatchThreshold=FACE_MATCH_THRESHOLD,
             )
-            print(f"faces: {faces}")
+            logger.info(f"faces: {faces}")
             
-            return len(faces["FaceMatches"]) == 0
+            return len(faces["FaceMatches"]) == 1
         
         except Exception as e:
+            logger.error(f"Error checking face in collection: {e}")
             print(f"Error checking face in collection: {e}")
             return False
         
@@ -92,13 +99,15 @@ class Cloud:
     def create_collection(self) -> bool:
         try:
             self.rekognition_client.create_collection(CollectionId=REKOGNITION_COLLECTION_NAME)
-            print("successfully created collection 'REKOGNITION_COLLECTION_NAME'")
+            logger.info("successfully created collection 'REKOGNITION_COLLECTION_NAME'")
             return True
 
         except self.rekognition_client.exceptions.ResourceAlreadyExistsException:
+            logger.warn("Collection 'REKOGNITION_COLLECTION_NAME' already exists")
             print("Collection 'REKOGNITION_COLLECTION_NAME' already exists")
             return False
         except Exception as e:
+            logger.error(f"Error creating collection: {e}")
             print(f"Error creating collection: {e}")
             return False
         
@@ -110,18 +119,18 @@ class Cloud:
             )
             return response
         except Exception as e:
+            logger.error(f"Error adding face to known faces: {e}")
             print(f"Error adding face to known faces: {e}")
             return False
         
     def add_known_faces(self, path: str): 
         all_files = os.listdir(path)
-        print(f"all files: {all_files}")
+        logger.info(f"all files: {all_files}")
         all_imgs_paths: List[str] = []
         for img in all_files:
             if img.endswith(".png"): 
                 all_imgs_paths.append(os.path.join(path, img))
                 
-        print(f"all imgs paths: {all_imgs_paths}")
         # convert all paths to bytes list
         all_imgs  = [self.read_image(img_path) for img_path in all_imgs_paths]
             
@@ -145,8 +154,15 @@ def detect_intruder():
     
     #result = cloud.process_image(img_bytes)
     result = cloud.is_face_in_collection(img_bytes)
+    logger.info(f"the face is in the collection: {result}")
     
+    # we want to return whether the person is an intruder or not, 
+    # result states if face is in collection -> so negate the result. 
+    result = not result
+
     response = {"result": result}
+    
+    logger.info(f"sending result to client; response: {response}")
     return flask.jsonify(response)
     
 @app.route("/health", methods=["GET"])

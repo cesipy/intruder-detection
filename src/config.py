@@ -35,3 +35,4 @@ EDGE_URL = f"http://edge:{UVICORN_PORT}"
 EMIT_FAILURE_DELAY = 1.0        # 1 sec
 INITIAL_DELAY      = 30.0       # how long to wait after setup. Is due to overhead of edge provisioning.
 EMIT_RETRY_NUMBER  = 3          # how often to try to reconnect when sending
+CONNECTION_RETRY   = 10

@@ -8,6 +8,9 @@ import requests
 
 from yolo_detection import YoloDetection
 from config import *
+from logger import Logger
+
+logger = Logger()
 
 class EdgeServer:
     def __init__(self):
@@ -45,9 +48,11 @@ class EdgeServer:
         if ret.status_code == 200: 
             resonse = ret.json()
             is_intruder_detected = resonse.get("result")
+            logger.info(f"response from cloud: {resonse}, is_intruder_detected: {is_intruder_detected}")
             #print(f"is_intruder_detected: {is_intruder_detected}")
             if is_intruder_detected: 
                 #print("Intruder detected, sending notification to alarm")
+                logger.info("Intruder detected, sending notification to alarm")
                 await self.trigger_alarm()
             
         #print(f"response from cloud: {ret}")
@@ -84,13 +89,16 @@ class EdgeServer:
         
         if frame_dec is None:
             print(f"Failed to decode frame: {name}")
+            logger.error(f"Failed to decode frame: {name}")
             #return
         
         if self.person_detection.analyze_image(frame_dec):
             print("Person detected")
+            logger.info("Person detected")
             await self.process_frame(frame, name)       # send to cloud
         else:
             print("Nothing detected")
+            logger.info("Nothing detected")
         
 
 

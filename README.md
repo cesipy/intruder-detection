@@ -49,3 +49,5 @@ The iots have to wait 30 secs (defined in `INITIAL_DELAY`) before connecting to 
 - [x] make collection name in cloud a configurable param
 - [ ] logging
 - [ ] person tracking with yolo
+- [ ] handle errors in flask app (with decorators, i guess?)
+- [ ] limit frame sending in iot. not every frame has to be sended, maybe just one frame every second. 
