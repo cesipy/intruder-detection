@@ -53,13 +53,12 @@ docker compose up --build
 
 
 ## TODOs
-- [x] add global config files for each layer: iot has a config_iot.py with all the parameters and global variables
+- [ ] add frame buffer and worker thread working on all frames. 
+- [ ] problem with edge not receiving incoming connections when yolo is running
+- [ ] edge is too big - 1.76 GB - due to torch i guess
+
 - [ ] face detection model - train own  model for detecting faces
-- [x] write documentation/good comments for credentials handling for `src/cloud.py` 
-- [x] need to upload credentials to cloud instance, so boto-python is working
-- [x] adjust process_image  in `src/cloud.py` to detect unknown persons.
-- [x] make collection name in cloud a configurable param
-- [x] logging
+
 - [ ] person tracking with yolo
 - [ ] handle errors in flask app (with decorators, i guess?)
 - [ ] limit frame sending in iot. not every frame has to be sended, maybe just one frame every second. 

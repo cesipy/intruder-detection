@@ -28,6 +28,14 @@ class Cloud:
             self.add_known_faces(KNOWN_FACES_PATH)
         logger.info("Initialized cloud service")
         
+    def _delete_collection(self): 
+        try:
+            response = self.rekognition_client.delete_collection(
+                CollectionId=REKOGNITION_COLLECTION_NAME
+            )
+            print('Collection deleted successfully')
+        except Exception as e:
+            print(f"Error deleting collection: {e}")
     
     def _load_credentials_configuration(self) -> dict:
         if not  os.path.exists(CLOUD_CREDENTIALS_PATH):

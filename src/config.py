@@ -1,5 +1,5 @@
 # debugging: print everything, verbose "logging"
-DEBUGGING = True
+DEBUGGING = False
 
 
 
@@ -25,7 +25,7 @@ DETECT_INTRUDER_PATH = "detect_intruder"
 KNOWN_FACES_PATH = "res/known_faces"
 
 # Rekognition stuff
-FACE_MATCH_THRESHOLD = 90   # threshold for face match in collection in percent
+FACE_MATCH_THRESHOLD = 75   # threshold for face match in collection in percent
 REKOGNITION_COLLECTION_NAME = "known_persons" # collection name
 
 
