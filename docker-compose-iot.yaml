@@ -1,0 +1,39 @@
+services: 
+  camera_1: 
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.iot
+    image: iot
+    environment:
+      - CAMERA=video1.avi
+
+
+  camera_2: 
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.iot
+    image: iot
+    environment:
+      - CAMERA=video2.avi
+
+  camera_3: 
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.iot
+    image: iot
+    environment:
+      - CAMERA=video3.avi
+
+  camera_4: 
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile.iot
+    image: iot
+    environment:
+      - CAMERA=video4.avi
+  
+  alarm:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.alarm
+    image: alarm

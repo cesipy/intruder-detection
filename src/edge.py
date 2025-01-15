@@ -81,6 +81,7 @@ class EdgeServer:
             if is_intruder_detected: 
         
                 logger.info("Intruder detected, sending notification to alarm")
+                print("Rekognition response: Intruder detected, sending notification to alarm")
                 
                 # for debugging - are the frames correct?
                 debug_dir = Path("debug_frames")
@@ -132,7 +133,7 @@ class EdgeServer:
                     
                     self.yolo_request +=1
                     if self.person_detection.analyze_image(frame_dec):
-                        print("Person detected")
+                        print("yolo detected person, sending to cloud")
                         logger.info("Person detected")
                         self.yolo_person_detected += 1
                         
@@ -141,7 +142,7 @@ class EdgeServer:
                         
                         await self.send_frame_to_cloud(frame, name)       # send to cloud
                     else:
-                        print("Nothing detected")
+                        #print("Nothing detected")
                         logger.info("Nothing detected")
                         
                 except Exception as e:

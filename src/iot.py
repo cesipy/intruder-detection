@@ -109,6 +109,7 @@ def open_video(name):
     print(f'opening video {name}')
     logger.info(f'opening video {name}')
     video_path = os.path.join('camera_set', name)
+    print(video_path)
     video = cv2.VideoCapture(video_path)
     if (video.isOpened() == False):
         logger.error(f'Video file could not be opened on path {video_path}')

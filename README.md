@@ -44,14 +44,41 @@ docker compose up --build
 
 #after simulation stopped, run, saves logs to `res/collected_logs`
 ./collect_logs.sh
-
 ```
 
 
+## Provisioning in cloud
 
+For each layer, I created a EC2 instance to run the code of the distributed system. 
+I have the .pem file locally available, so please ask me for it. 
+If time allows, I will create a script that provisions the instances using Terraform.
+In order to connect to the instance using ssh, you need the `.pem` file and the public IP. To connect: 
 
+```bash
+ssh -i ~/location/to/file.pem ec2-user@PUBLIC-IP
+sudo yum install docker -y &&sudo service docker start && sudo usermod -a -G docker ec2-user && sudo chmod 666 /var/run/docker.sock
+
+# also necessary to install docker-compose: 
+sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+
+sudo chmod +x /usr/local/bin/docker-compose
+
+# then run the corresponding docker containers with the compose command: 
+docker-compose -f docker-compose-layer.yaml up --build
+```
+
+Then to start the docker container for the corresponding layer `layer`, run the `docker build` and `docker run` command. 
+```bash
+
+docker build -f docker/Dockerfile.layer . 
+docker run -d <id or name> 
+```
+This has to be done for all three layers, namely `iot`, `edge` and `cloud`. 
+
+As local changes have to be pushed there from time to time, use the script `./upload_to_all_ec2.sh`. There you have to adapt the public IPs of the instances. 
 
 ## TODOs
+- [ ] path for camera set is not general - does not work on ec2
 - [x] add frame buffer and worker thread working on all frames. 
 - [x] problem with edge not receiving incoming connections when yolo is running
 - [ ] edge is too big - 1.76 GB - due to torch i guess
