@@ -8,7 +8,7 @@ COPY docker/dependencies/requirements_cloud.txt .
 RUN pip install -r requirements_cloud.txt
 
 COPY src/cloud.py . 
-COPY res/credentials/creds.yaml res/credentials/creds.yaml
+
 COPY src/config.py .
 COPY src/logger.py .
 

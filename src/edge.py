@@ -58,9 +58,6 @@ class EdgeServer:
     async def trigger_alarm(self, ):
         await self.sio.emit('alarm_event')
         
-
-
-
     async def send_frame_to_cloud(self, frame_data: bytes, frame_name):
         self.total_cloud_requests +=1
         files = {

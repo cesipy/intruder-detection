@@ -4,14 +4,13 @@ This README is still in progress.
 
 ## Setup credentials
 
-In order to use AWS Rekognition you need to provide credentials in two places. 
+In order to use AWS Rekognition you need to provide credentials.
 
-1) Credentials in `res/credentials/creds.yaml`. If the file is not present, create it and copy the content from `res/credentials/creds.yaml.sample`. Of course you'll need to update the AWS credentials. 
-
-2) Credentials in `res/credentials/.aws/credentials`. Here you can directly copy the credentials form the AWS Learners Lab and copy them into credentials. Again, if the file is not present, go ahead and create it. 
+- Credentials in `res/credentials/.aws/credentials`. Here you can directly copy the credentials form the AWS Learners Lab and copy them into credentials. If the file is not present, create it!
 
 
-Credentials from point 1) are needed when setting up the rekognition cloud. The credentials from point 2) are needed for the `boto3` python package. I guess those could be combined to one, but I had no time to research that. 
+Credentials are neede for boto3 initialisation and connecting to the rekognition client. 
+
 
 ## Simulation of topology with docker containers
 To avoid deploying all the code to the cloud for testing, we can simulate the topology with docker containers.
@@ -53,8 +52,8 @@ docker compose up --build
 
 
 ## TODOs
-- [ ] add frame buffer and worker thread working on all frames. 
-- [ ] problem with edge not receiving incoming connections when yolo is running
+- [x] add frame buffer and worker thread working on all frames. 
+- [x] problem with edge not receiving incoming connections when yolo is running
 - [ ] edge is too big - 1.76 GB - due to torch i guess
 
 - [ ] face detection model - train own  model for detecting faces
