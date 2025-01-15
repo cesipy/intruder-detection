@@ -28,9 +28,7 @@ class EdgeServer:
         
         # deque for faster efficiency in comparision to list
         # we have a lot of frames in the buffer -> up to 10000 or even more in theoretical production lol
-        #self.frame_buffer = deque()
         self.frame_buffer = asyncio.Queue()
-        
         
         self.total_cloud_requests = 0
         self.intruder_counter= 0
@@ -42,6 +40,7 @@ class EdgeServer:
         self.frames_received = 0
         
         self.worker_task = None
+      
         
     def _setup_events(self):
         @self.sio.event
@@ -101,8 +100,6 @@ class EdgeServer:
                 logger.info(f"total intruder detected: {self.intruder_counter}, total requests: {self.total_cloud_requests}")
                 
                 await self.trigger_alarm()
-            
-        #print(f"response from cloud: {ret}")
         return
         
     def detect_intruder_test(self, frame_name: str, test_detection_freq: int=100): 
@@ -118,10 +115,8 @@ class EdgeServer:
 
     async def process_frame_buffer(self):
         while True: 
-            
-            
             if not  self.frame_buffer.empty(): 
-        
+                #async get the next element in the buffer
                 data = await self.frame_buffer.get()
                 name = data['frame_name']
                 frame = data['data']
@@ -152,11 +147,10 @@ class EdgeServer:
                 except Exception as e:
                     logger.error(f"Error processing frame: {e}")
                 finally:
-                    # Mark task as done
+                    # enqueueing task is complete, no need on lock anymore.
                     self.frame_buffer.task_done()
 
-            await asyncio.sleep(0.01)  # Add small sleep to prevent CPU hogging
-                
+            await asyncio.sleep(0.01)  # problem with no rest in while loop
                 
                 
 
