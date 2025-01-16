@@ -25,7 +25,8 @@ in order to update the contents of this you can either run `pip freeze > depende
 Then the project can be executed using the following commands: 
 
 ```bash
-docker compose up --build   # --build forces rebuild
+# in the src directory
+docker compose -f docker-compose.yaml up --build   # --build forces rebuild
 
 # to stop all containers
 docker compose down
@@ -49,33 +50,46 @@ docker compose up --build
 
 ## Provisioning in cloud
 
-For each layer, I created a EC2 instance to run the code of the distributed system. 
-I have the .pem file locally available, so please ask me for it. 
-If time allows, I will create a script that provisions the instances using Terraform.
-In order to connect to the instance using ssh, you need the `.pem` file and the public IP. To connect: 
+For each layer (IoT, Edge, Cloud), I created a separate EC2 instance to run the distributed system. The Edge and Cloud instances need at least t2.medium instance type due to YOLO and AWS Rekognition requirements.
 
+To set up a new instance:
+
+1. Connect via SSH using the .pem file (contact me for access):
 ```bash
 ssh -i ~/location/to/file.pem ec2-user@PUBLIC-IP
-sudo yum install docker -y &&sudo service docker start && sudo usermod -a -G docker ec2-user && sudo chmod 666 /var/run/docker.sock
-
-# also necessary to install docker-compose: 
-sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
-
-sudo chmod +x /usr/local/bin/docker-compose
-
-# then run the corresponding docker containers with the compose command: 
-docker-compose -f docker-compose-layer.yaml up --build
 ```
 
-Then to start the docker container for the corresponding layer `layer`, run the `docker build` and `docker run` command. 
+2. Install Docker and required tools:
 ```bash
+sudo yum install docker -y
+sudo service docker start 
+sudo usermod -a -G docker ec2-user 
+sudo chmod 666 /var/run/docker.sock
 
-docker build -f docker/Dockerfile.layer . 
-docker run -d <id or name> 
+# install Docker Compose
+sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 ```
-This has to be done for all three layers, namely `iot`, `edge` and `cloud`. 
 
-As local changes have to be pushed there from time to time, use the script `./upload_to_all_ec2.sh`. There you have to adapt the public IPs of the instances. 
+3. Upload code to instances using the provided script:
+```bash
+# adapt IPs in script first
+./upload_to_all_ec2.sh
+```
+
+4. Configure server addresses in `config.py`:
+- Update `CLOUD_URL` with Cloud instance's public IP
+- Update `EDGE_URL` with Edge instance's public IP
+
+5. Start the services on each instance:
+```bash
+# run on respective instances (cloud, edge, or iot)
+docker-compose -f docker/docker-compose-[layer].yaml up --build
+```
+Replace [layer] with cloud, edge, or iot depending on which instance you're deploying to.
+
+Make sure the EC2 security groups allow traffic on the required ports (5000 for Cloud, 5001 for Edge).
+
 
 ## TODOs
 - [ ] path for camera set is not general - does not work on ec2
