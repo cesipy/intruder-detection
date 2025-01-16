@@ -1,0 +1,8 @@
+services: 
+  edge:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.edge
+    image: edge
+    ports:
+      - "5001:5001"

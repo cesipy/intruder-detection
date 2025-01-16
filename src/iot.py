@@ -36,6 +36,7 @@ class Iot:
             try: 
                 self.sio.connect(EDGE_URL)
                 logger.info("successfully connected to edge")
+                return
             except socketio.exceptions.BadNamespaceError as e: 
                 logger.error(f"Couldn't connect, namespace is bad. Error: {e}")
                 print(f"Error: {e}")
@@ -82,20 +83,23 @@ class Iot:
         # was not successful
         return False
 
-    def process_frames(self, video):
+    def process_frames(self, video, frame_skip=30):
         i = 1   # frame number
         while(video.isOpened()):
             framerate = video.get(cv2.CAP_PROP_FPS)     # extract frame rate
 
             retval, frame = video.read()   # parse the video
+            
             if retval == True:
-                retval, jpg = cv2.imencode('.jpg', frame)
-                data = jpg.tobytes()
-                frame_name = f"{self.camera_name.split('.')[0]}_frame{i}.jpg"
-                
-                frame_obj = Frame(frame_name, data)
-                succ = self._send_frame(frame_obj)
-                logger.info(f"Frame {i} sent successfully: {succ}")
+                condition: bool = i % frame_skip == 0
+                if condition:
+                    retval, jpg = cv2.imencode('.jpg', frame)
+                    data = jpg.tobytes()
+                    frame_name = f"{self.camera_name.split('.')[0]}_frame{i}.jpg"
+                    
+                    frame_obj = Frame(frame_name, data)
+                    succ = self._send_frame(frame_obj)
+                    logger.info(f"Frame {i} sent successfully: {succ}")
                 i += 1
                 
                 time.sleep(1/framerate)  # simulate the real frame rate
@@ -105,6 +109,7 @@ def open_video(name):
     print(f'opening video {name}')
     logger.info(f'opening video {name}')
     video_path = os.path.join('camera_set', name)
+    print(video_path)
     video = cv2.VideoCapture(video_path)
     if (video.isOpened() == False):
         logger.error(f'Video file could not be opened on path {video_path}')

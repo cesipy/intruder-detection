@@ -22,7 +22,7 @@ class YoloDetection:
         os.environ["MKL_NUM_THREADS"] = "1"
         
         yolo_name = f"yolo5v{model_type}"
-        self.model = YOLO("yolov8m.pt")
+        self.model = YOLO("yolov8m.pt", verbose=False)
         self.model.cpu()
 
     #TODO: make confidence_threshold customizable in config
@@ -37,7 +37,7 @@ class YoloDetection:
             bool: True if person is detected, False otherwise
         """
         try:
-            results = self.model(image)
+            results = self.model(image, verbose=False)
 
             # should be only one result, but is wrapped in list
             for result in results: 

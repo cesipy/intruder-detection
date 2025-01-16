@@ -4,14 +4,13 @@ This README is still in progress.
 
 ## Setup credentials
 
-In order to use AWS Rekognition you need to provide credentials in two places. 
+In order to use AWS Rekognition you need to provide credentials.
 
-1) Credentials in `res/credentials/creds.yaml`. If the file is not present, create it and copy the content from `res/credentials/creds.yaml.sample`. Of course you'll need to update the AWS credentials. 
-
-2) Credentials in `res/credentials/.aws/credentials`. Here you can directly copy the credentials form the AWS Learners Lab and copy them into credentials. Again, if the file is not present, go ahead and create it. 
+- Credentials in `res/credentials/.aws/credentials`. Here you can directly copy the credentials form the AWS Learners Lab and copy them into credentials. If the file is not present, create it!
 
 
-Credentials from point 1) are needed when setting up the rekognition cloud. The credentials from point 2) are needed for the `boto3` python package. I guess those could be combined to one, but I had no time to research that. 
+Credentials are neede for boto3 initialisation and connecting to the rekognition client. 
+
 
 ## Simulation of topology with docker containers
 To avoid deploying all the code to the cloud for testing, we can simulate the topology with docker containers.
@@ -26,7 +25,8 @@ in order to update the contents of this you can either run `pip freeze > depende
 Then the project can be executed using the following commands: 
 
 ```bash
-docker compose up --build   # --build forces rebuild
+# in the src directory
+docker compose -f docker-compose.yaml up --build   # --build forces rebuild
 
 # to stop all containers
 docker compose down
@@ -45,16 +45,56 @@ docker compose up --build
 
 #after simulation stopped, run, saves logs to `res/collected_logs`
 ./collect_logs.sh
-
 ```
 
 
+## Provisioning in cloud
 
+For each layer (IoT, Edge, Cloud), I created a separate EC2 instance to run the distributed system. The Edge and Cloud instances need at least t2.medium instance type due to YOLO and AWS Rekognition requirements.
+
+To set up a new instance:
+
+1. Connect via SSH using the .pem file (contact me for access):
+```bash
+ssh -i ~/location/to/file.pem ec2-user@PUBLIC-IP
+```
+
+2. Install Docker and required tools:
+```bash
+sudo yum install docker -y
+sudo service docker start 
+sudo usermod -a -G docker ec2-user 
+sudo chmod 666 /var/run/docker.sock
+
+# install Docker Compose
+sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+```
+
+3. Upload code to instances using the provided script:
+```bash
+# adapt IPs in script first
+./upload_to_all_ec2.sh
+```
+
+4. Configure server addresses in `config.py`:
+- Update `CLOUD_URL` with Cloud instance's public IP
+- Update `EDGE_URL` with Edge instance's public IP
+
+5. Start the services on each instance:
+```bash
+# run on respective instances (cloud, edge, or iot)
+docker-compose -f docker/docker-compose-[layer].yaml up --build
+```
+Replace [layer] with cloud, edge, or iot depending on which instance you're deploying to.
+
+Make sure the EC2 security groups allow traffic on the required ports (5000 for Cloud, 5001 for Edge).
 
 
 ## TODOs
-- [ ] add frame buffer and worker thread working on all frames. 
-- [ ] problem with edge not receiving incoming connections when yolo is running
+- [ ] path for camera set is not general - does not work on ec2
+- [x] add frame buffer and worker thread working on all frames. 
+- [x] problem with edge not receiving incoming connections when yolo is running
 - [ ] edge is too big - 1.76 GB - due to torch i guess
 
 - [ ] face detection model - train own  model for detecting faces

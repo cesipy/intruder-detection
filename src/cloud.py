@@ -19,7 +19,7 @@ logger = Logger()
 class Cloud:
     
     def __init__(self,) -> None: 
-        self.credentials_config = self._load_credentials_configuration()
+        #self.credentials_config = self._load_credentials_configuration()
         self.rekognition_client = self._init_rekognition_client()
 
         if not DEBUGGING:
@@ -47,17 +47,17 @@ class Cloud:
         if DEBUGGING: 
             return None     # dont need this
         
-        aws_access_key_id     = self.credentials_config['aws_access_key_id']
-        aws_secret_access_key = self.credentials_config['aws_secret_access_key']
-        aws_session_token     = self.credentials_config['aws_session_token']
+        # aws_access_key_id     = self.credentials_config['aws_access_key_id']
+        # aws_secret_access_key = self.credentials_config['aws_secret_access_key']
+        # aws_session_token     = self.credentials_config['aws_session_token']
         region_name = AWS_REGION_NAME
         
         return boto3.client(
             'rekognition', 
             region_name=region_name, 
-            aws_access_key_id=aws_access_key_id, 
-            aws_secret_access_key=aws_secret_access_key, 
-            aws_session_token=aws_session_token,
+            # aws_access_key_id=aws_access_key_id, 
+            # aws_secret_access_key=aws_secret_access_key, 
+            # aws_session_token=aws_session_token,
         )
         
     def process_image(self, img: bytes) -> bool:
