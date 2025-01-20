@@ -1,0 +1,5 @@
+opencv-python-headless
+python-socketio
+requests
+websocket-client
+flask

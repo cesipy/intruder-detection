@@ -91,6 +91,25 @@ Replace [layer] with cloud, edge, or iot depending on which instance you're depl
 Make sure the EC2 security groups allow traffic on the required ports (5000 for Cloud, 5001 for Edge).
 
 
+
+## Evaluation
+Adversaria for evaluation, before it is incorporated into the report.
+
+The dataset consists of 14 images.
+- 10 images include persons, 4 no persons
+- 6 images include intruder, 8 no intruder
+
+### yolo
+2025-01-20 10:53:46 - INFO  - edge.py:process_frame_buffer:146 - yolo_person_detected: 10, yolo_request: 14
+yolo accuracy very good!
+
+### rekognition
+total intruder detected: 3, total requests: 10
+- does not recognize all intruders, one is missing!
+
+### overal system accu. and latency
+
+
 ## TODOs
 - [ ] path for camera set is not general - does not work on ec2
 - [x] add frame buffer and worker thread working on all frames. 

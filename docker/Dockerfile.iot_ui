@@ -3,13 +3,14 @@ FROM python:3-slim
 WORKDIR /app
 
 # all dependencies before copying -> this layer has to be changed less freq.
-COPY docker/dependencies/requirements_iot.txt . 
-RUN pip install -r requirements_iot.txt
+COPY docker/dependencies/requirements_iot_ui.txt . 
+RUN pip install -r requirements_iot_ui.txt
 
 
 RUN mkdir -p /app/logs
 
 COPY src/iot.py . 
+COPY src/iot_ui.py .
 COPY src/utils.py .
 COPY src/config.py . 
 COPY src/logger.py .
@@ -18,4 +19,4 @@ COPY res/iot_resources/camera_set ./camera_set
 COPY res/iot_resources/evaluation_images ./evaluation_images
 
 
-CMD ["python", "-u", "iot.py"]
+CMD ["python", "-u", "iot_ui.py"]

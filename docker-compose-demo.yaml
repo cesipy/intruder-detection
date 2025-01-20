@@ -1,0 +1,71 @@
+services: 
+# ---------- iot layer ----------
+  camera1: 
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.iot_ui
+    depends_on:
+      - edge
+    image: iot
+    ports: 
+      - 5010:5010
+    environment:
+      - CAMERA=video1.avi
+      - IS_DEMO=True
+    networks:
+      - simulation_network
+
+  
+  alarm:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.alarm
+    depends_on:
+      - edge
+    image: alarm
+    environment:
+      - IS_DEMO=True
+    networks:
+      - simulation_network
+
+# ---------- edge layer ----------
+  edge:
+      build:
+        context: .
+        dockerfile: docker/Dockerfile.edge
+      image: edge
+      networks:
+        - simulation_network
+        - simulation_network_edge_cloud
+  
+      deploy:
+        resources:
+          limits:
+            cpus: '4'
+            memory: 4G
+          reservations:
+            memory: 2G
+      environment:
+        - OMP_NUM_THREADS=1
+        - MKL_NUM_THREADS=1
+        - IS_DEMO=True
+
+# ---------- cloud layer ----------
+
+  cloud: 
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.cloud
+    image: cloud
+    environment:
+        - IS_DEMO=True
+    networks:
+      - simulation_network_edge_cloud
+
+networks:
+  simulation_network:
+    driver: bridge
+
+  simulation_network_edge_cloud:
+    driver: bridge
+

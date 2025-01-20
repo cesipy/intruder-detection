@@ -78,10 +78,14 @@ class EdgeServer:
             is_intruder_detected = resonse.get("result")
             logger.info(f"response from cloud: {resonse}, is_intruder_detected: {is_intruder_detected}")
 
+            if DEMO: 
+                print(f"response from cloud: {resonse}, is_intruder_detected: {is_intruder_detected}")
+            
             if is_intruder_detected: 
         
                 logger.info("Intruder detected, sending notification to alarm")
-                print("Rekognition response: Intruder detected, sending notification to alarm")
+                if not DEMO:
+                    print("Rekognition response: Intruder detected, sending notification to alarm")
                 
                 # for debugging - are the frames correct?
                 debug_dir = Path("debug_frames")
@@ -97,10 +101,10 @@ class EdgeServer:
                 cv2.imwrite(str(frame_path), frame_decoded, [cv2.IMWRITE_JPEG_QUALITY, 95])
 
                 self.intruder_counter +=1
-                logger.info(f"current ratio of intruders and requests: {self.intruder_counter/self.total_cloud_requests}")
-                logger.info(f"total intruder detected: {self.intruder_counter}, total requests: {self.total_cloud_requests}")
                 
                 await self.trigger_alarm()
+            logger.info(f"current ratio of intruders and requests: {self.intruder_counter/self.total_cloud_requests}")
+            logger.info(f"total intruder detected: {self.intruder_counter}, total requests: {self.total_cloud_requests}")
         return
         
     def detect_intruder_test(self, frame_name: str, test_detection_freq: int=100): 
@@ -132,18 +136,22 @@ class EdgeServer:
                         #return
                     
                     self.yolo_request +=1
-                    if self.person_detection.analyze_image(frame_dec):
-                        print("yolo detected person, sending to cloud")
+                    yolo_result = self.person_detection.analyze_image(frame_dec)
+                    if DEMO: 
+                        print(f"yolo preprocessing, person detected: {yolo_result}")
+                    if yolo_result: 
+                        if not DEMO:
+                            print("yolo detected person, sending to cloud")
                         logger.info("Person detected")
                         self.yolo_person_detected += 1
                         
-                        logger.info(f"Yolo detection ratio: {self.yolo_person_detected/self.yolo_request}")
-                        logger.info(f"yolo_person_detected: {self.yolo_person_detected}, yolo_request: {self.yolo_request}")
                         
                         await self.send_frame_to_cloud(frame, name)       # send to cloud
                     else:
                         #print("Nothing detected")
                         logger.info("Nothing detected")
+                    logger.info(f"Yolo detection ratio: {self.yolo_person_detected/self.yolo_request}")
+                    logger.info(f"yolo_person_detected: {self.yolo_person_detected}, yolo_request: {self.yolo_request}")
                         
                 except Exception as e:
                     logger.error(f"Error processing frame: {e}")

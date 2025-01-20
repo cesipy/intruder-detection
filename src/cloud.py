@@ -101,7 +101,10 @@ class Cloud:
         except Exception as e:
             logger.error(f"Error checking face in collection: {e}")
             print(f"Error checking face in collection: {e}")
-            return False
+            
+            #when there is some error, we want to return True, as otherwise
+            # the server would return that there is an intruder - > not true.
+            return True    
         
         
     def create_collection(self) -> bool:

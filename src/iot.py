@@ -4,12 +4,14 @@ import socketio
 import time
 
 import socketio.exceptions
+from glob import glob
 
 from config import *
 from utils import Frame
 from logger import Logger
 
 logger = Logger()
+
 
 
 class Iot:
@@ -105,6 +107,27 @@ class Iot:
                 time.sleep(1/framerate)  # simulate the real frame rate
 
 
+    def evaluation(self, image_folder: str):
+        
+        image_files = sorted(glob(os.path.join(image_folder, '*.png')))
+        
+        if not image_files: 
+            logger.error(f"No images found in folder {image_folder}")
+            print(f"No images found in folder {image_folder}")
+            return
+        
+        for image in image_files: 
+            retval, jpg = cv2.imencode('.jpg', cv2.imread(image))
+            data = jpg.tobytes()
+            
+            frame_name = os.path.basename(image)
+            frame_obj = Frame(frame_name, data)
+            succ = self._send_frame(frame_obj)
+            logger.info(f"Frame {frame_name} sent successfully: {succ}")
+        
+            
+        
+
 def open_video(name):
     print(f'opening video {name}')
     logger.info(f'opening video {name}')
@@ -122,9 +145,16 @@ def main():
     
     time.sleep(INITIAL_DELAY)      # wait for server, maybe put in init function of Iot
     iot = Iot()                     # initial connection is established here
-    video = open_video(iot.camera_name)
     
-    iot.process_frames(video)
+    if EVALUATION: 
+        iot.evaluation("evaluation_images")
+        print("Evaluation finished")
+        logger.info("Evaluation finished")
+    
+    else: 
+        video = open_video(iot.camera_name)
+        
+        iot.process_frames(video)
 
 if __name__ == '__main__':
     main()
