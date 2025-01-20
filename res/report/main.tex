@@ -44,30 +44,81 @@ The cloud layer integrates with Amazon Rekognition to perform facial recognition
 
 
 \section{Implementation details}
-In our experiment the architecture is as follows.
+Our implementation consists of three distinct layers: IoT, Edge, and Cloud, each with specific responsibilities and components.
 
-The IoT layer is represented by 4 camera containers and one alarm container for each edge device. The simulation video comes from set\_3 of WiseNET dataset, which potrays two people appearing in differnt times on the scene. One person can simulate the intruder and the other an employee. 
+\subsection{IoT Layer}
+The IoT layer consists of 4 camera containers and one alarm container for each edge device. We utilize the WiseNET dataset (set\_3) for video simulation, which features two individuals appearing at different times in the scene - one simulating an intruder and another an employee. The camera containers are designed to have access to the complete set of videos, though each container selects only one based on a container-specific environment variable \textit{CAMERA}. The video sets are \textit{.avi-files} that are read sequentially and looped when the end is reached. 
+These videos are processed using OpenCV's read() function to extract frame sequences. The system then transmits these frames to the edge device using Socket.IO library at intervals that simulate real-time frame rates. The alarm container maintains a connection to the edge server and remains in a waiting state until triggered by an event.
 
-In order to classifiy intruders, we randomly selected a person and captured several screenshots of the person's face. Those screenshots are uploaded to an AWS Rekognition dataset and used to compare the faces detected by the edge device. The provisioning of the collection and known faces images is done at each start of the cloud server using the boto3 Python package.
+\subsection{Edge Layer}
+The edge layer operates as an EC2 instance running the YOLO (You Only Look Once) algorithm for object detection. The implementation is Python-based and utilizes OpenCV for frame processing. Images from the IoT layer are received by the edge device using the Socket.IO library. When the system detects a person-like object using YOLO, it immediately forwards the relevant data to the cloud server through a REST API interface.
+
+\subsection{Cloud Layer}
+The cloud implementation centers around facial recognition and alert management through a REST API built using Python's Flask package to receive images from the edge layer. The system integrates directly with AWS Rekognition for facial recognition processing, with automatic provisioning of the Rekognition collection and known faces occurring at cloud server startup using boto3. When processing is complete, the result is returned in the HTTP response. Upon detection of an unknown person, the system triggers an alert, informs the edge layer through the HTTP response, and activates the appropriate alarm.
+
+The system assumes a network topology where multiple cameras at a single location connect to one edge device. Each edge device manages multiple cameras but only one alarm. The cloud layer is designed to handle multiple edge devices simultaneously, with the capability to trigger location-specific alarms when intruders are detected.
 
 
-While all camera containers will include the whole set of videos, each will select only one based on an environment variable bound to the container. This video is then processed using OpenCV read() function, which returns the sequence of frames. Those are then sent using Socket.IO library to the edge device in an interval simulating the real frame rate. 
+\subsection{Implementation Decisions}
+In the software stack where several options were available and we decided to go for specific ones. This section provides rationale for the choices made. This includes the programming language, communication libraries and detection algorithms.
+\\
 
-The alarm container also connects to the edge server and waits for an event, that will trigger it.
+\subsubsection{Communication}
+The distributed system consists of several components that need to communicate in an efficient way - that's what makes it a distributed system. 
+Namely two main interfaces need communictation:
+\\
+\begin{itemize}
+    \item IOT - Edge communication
+    \item Edge - Cloud communication
+\end{itemize}
 
-The edge device is an EC2 instance running the YOLO algorithm. The algorithm is implemented in Python and uses the OpenCV library to process the frames. The YOLO algorithm is capable of detecting objects and people in the frames. When a person-like object is detected, the relevant data is sent to the cloud server using a REST API. Images from the IOT layer are received by the edge device using the Socket.IO library. 
+\hfill \break
+For the \textbf{IOT - Edge} communication we decided to use socket.io. This Python library enables communication with websockets. As we need to send a constant stream of data, this communication model seems to be the best fit. The protocol includes a full-duplex communication channel build ontop of the network layer. Its a consistent communication model that requires minimal overhead for setting up the connection. 
 
-In the cloud layer, we implemented a REST API using Python's Flask package to receive images fromc the edge layer. Here, HTTP requests are handled. Those images are directly sent to Rekognition for facial recognition. The result of the image processing is returned in the HTTP response. If an unknown person is detected, an alert is triggered, the edge layer is informed by the HTTP response and the alarm is activated.
+This model handles many frames transfered very well and is very efficient. In comparision to HTTP that would require a new connection for every frame, this model is much more efficient. 
+\\
 
-Our assumption for the network is that we have several cameras at a location connected to a single edge device. Therefore, the edge device manages multiple cameras, but only one alarm. The cloud layer is assumed to be able to handle multiple edge devices. 
-When there is an intruder in one location, the Cloud informs the corresponding edge device to activate the alarm. 
+%TODO: insert example of socket.io communication wit sockets.
+
+For the \textbf{Edge - Cloud} communication we decided to use a REST API. This approach was implemented using Python's \textit{Flask} package to allow the distributed processing of the data. 
+
+Our assumption for the choice of the communication model was that the data transfer between Edge and Cloud is not as frequent as between IOT and Edge. Ideally only a few requests per hour are sent to the cloud, as there are only few intruders in the office. When we would have tens of thousands of requests to the server per minute, we would argue there is something wrong in the office. 
+
+Given our assumption, the overhead of setting up a new connection for every request is not as significant. Having a constant connection open to the cloud would be a waste of resources. 
+
+The REST API is a stateless communication model that uses HTTP requests to transfer data. It is simple to implement and easy to understand. 
+
+Whenever the preprocessing model (YOLO) detects a person in a frame, it sends the frame in a HTTP request to the cloud for further processing. 
+The cloud immediately processes the image and sends the response back in the HTTP response. We efficiently use the request and respons for our computation. 
+\hfill \break
+
+\subsubsection{Dection Models}
+In the system two detection models are used, namely: 
+\begin{itemize}
+\item YOLO: preprocessing images on Edge
+\item AWS Rekognition: facial recognition on Cloud
+\end{itemize}
+
+\hfill \break
+
+It was obvious to us to use Rekognition, as we already tested this AWS service in the course of the semester. It is a very powerful tool for facial recognition and very easy to use. 
+
+YOLO was chosen as the detection model for the edge, as it is a very efficient object detection model. It is able to process images in real-time and is very accurate. There were multiple problems in setting up the model in Docker, especially with dependencies for the \textit{pytorch} library. We found a workaround using \textit{ultralytics} package, that wrappes \textit{torch} and special classes for YOLO into one package. Unfortunately the package is exceptionally big and exceeds the maximum image size of 1GB. We had no time to further optimize the size of the edge layer and decided to use the large image. 
+
+YOLO and Rekognition can be easily encapsulated and used in the system. 
+For example, we implemented a wrapper class for yolo usage, so we can use simply the \textit{yoloDetection.analyseImage(image)} function. 
+Internally this function runs the yolo image detection, and returns True if a person was detected, otherwise False. 
+
+\begin{center}
+\includegraphics[width=1\linewidth]{analyze_image-function.png}
+\end{center}
 
 \section{Testing Setup}
 In the first weeks of implementing the distributed system, we solely focused on simulating disjoint networks in Docker, utilizing the Docker-Networks feature. 
 
 For every layer, we created a separate Dockerfile.[layer]. A simple \texttt{docker-compose.yaml} file was used to orchestrate the containers. In this orchestration, the camera containers were connected to the edge device, which in turn was connected to the cloud server. 
 The IOT containers are connected to the same network as the edge, the edge in addition is connected to the cloud network. 
-The following shows the configuration for 
+The following \textit{.yaml} shows the configuration for networking in docker containers.
 
 \begin{verbatim}
 networks:
@@ -75,7 +126,6 @@ networks:
     driver: bridge
   simulation_network_edge_cloud:
     driver: bridge
-
 
 # then in the container specification: 
 cloud: 
@@ -93,6 +143,13 @@ Deployment was easy then, just a matter of spinning up the containers on the EC2
 
 \section{Deployment Setup}
 The entire distributed system runs on three AWS EC2 instances:
+\begin{itemize}
+    \item IOT - layer: camera instances
+    \item EDGE - layer: edge instance with YOLO
+    \item CLOUD - layer: cloud instance with AWS Rekognition
+\end{itemize}
+
+\hfill \break
 
 The IoT layer components (4 camera containers and 1 alarm container) are consolidated on a single t2.micro instance, which is sufficient for simulating the video streams and alarm functionality.
 

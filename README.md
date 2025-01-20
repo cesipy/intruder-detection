@@ -102,3 +102,19 @@ Make sure the EC2 security groups allow traffic on the required ports (5000 for 
 - [ ] person tracking with yolo
 - [ ] handle errors in flask app (with decorators, i guess?)
 - [ ] limit frame sending in iot. not every frame has to be sended, maybe just one frame every second. 
+
+
+- [ ] evaluation: 
+    - [ ] YOLO precision, maybe comparision for different yolo models
+    - [ ] Rekognition precision
+    - [ ] overal precision/accuracy
+    - [ ] latency of the network
+    - [ ] some kind of cpu, memory, network usage would be nice!
+    - [ ] connect one container to it, where you can send life photos - for presentation
+    - [ ] test images for evaluation setup. 
+
+
+- [ ] report:       
+    - what to change/adapt in report?
+    - [ ] security and fault tolerance in report
+    - [ ] inconsistencies from prior versions: IOT-EDGE commication: HTTP vs message queue
