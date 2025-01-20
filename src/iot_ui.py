@@ -24,61 +24,7 @@ iot = Iot()
 
 @app.route('/')
 def index():
-    return '''
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>IoT Demo</title>
-        <style>
-            body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-            .status { margin: 20px 0; }
-            #preview { max-width: 100%; margin: 20px 0; }
-        </style>
-    </head>
-    <body>
-        <h1>IoT Camera Demo</h1>
-        <input type="file" id="imageInput" accept="image/*">
-        <button onclick="sendImage()">Send Image</button>
-        <div class="status" id="status"></div>
-        <img id="preview">
-
-        <script>
-            function sendImage() {
-                const input = document.getElementById('imageInput');
-                const status = document.getElementById('status');
-                
-                if (!input.files[0]) {
-                    status.textContent = 'Please select an image first';
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('image', input.files[0]);
-
-                status.textContent = 'Sending...';
-                
-                fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    status.textContent = data.message;
-                })
-                .catch(error => {
-                    status.textContent = 'Error: ' + error;
-                });
-            }
-
-            // Preview image
-            document.getElementById('imageInput').onchange = function(e) {
-                const preview = document.getElementById('preview');
-                preview.src = URL.createObjectURL(e.target.files[0]);
-            };
-        </script>
-    </body>
-    </html>
-    '''
+    return render_template("index.html")
 
 @app.route('/upload', methods=['POST'])
 def upload():

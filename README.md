@@ -111,9 +111,6 @@ total intruder detected: 3, total requests: 10
 
 
 ## TODOs
-- [ ] path for camera set is not general - does not work on ec2
-- [x] add frame buffer and worker thread working on all frames. 
-- [x] problem with edge not receiving incoming connections when yolo is running
 - [ ] edge is too big - 1.76 GB - due to torch i guess
 
 - [ ] face detection model - train own  model for detecting faces
