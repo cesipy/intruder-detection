@@ -9,6 +9,7 @@ services:
     image: iot
     environment:
       - CAMERA=video1.avi
+      - EVALUATION=TRUE
     networks:
       - simulation_network
 
@@ -20,6 +21,8 @@ services:
     depends_on:
       - edge
     image: alarm
+    environment:
+      - EVALUATION=TRUE
     networks:
       - simulation_network
 
@@ -41,6 +44,7 @@ services:
           reservations:
             memory: 2G
       environment:
+        - EVALUATION=TRUE
         - OMP_NUM_THREADS=1
         - MKL_NUM_THREADS=1
 
@@ -51,6 +55,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile.cloud
     image: cloud
+    environment:
+        - EVALUATION=TRUE
     networks:
       - simulation_network_edge_cloud
 

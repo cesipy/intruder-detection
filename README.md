@@ -112,7 +112,8 @@ total intruder detected: 3, total requests: 10
 
 ## TODOs
 - [ ] edge is too big - 1.76 GB - due to torch i guess
-
+- [ ] exception handling for no person found°
+- [ ] how to use yolo to extract multiple persons
 - [ ] face detection model - train own  model for detecting faces
 
 - [ ] person tracking with yolo

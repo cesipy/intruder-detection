@@ -133,20 +133,26 @@ class EdgeServer:
                     if frame_dec is None:
                         print(f"Failed to decode frame: {name}")
                         logger.error(f"Failed to decode frame: {name}")
-                        #return
                     
                     self.yolo_request +=1
-                    yolo_result = self.person_detection.analyze_image(frame_dec)
+
+                    # TODO: include the multiple sends
+                    person_detected, persons_images = self.person_detection.analyze_image(frame_dec)
+                    
+                    
                     if DEMO: 
-                        print(f"yolo preprocessing, person detected: {yolo_result}")
-                    if yolo_result: 
+                        print(f"yolo preprocessing, person detected: {person_detected}")
+                    if person_detected: 
                         if not DEMO:
                             print("yolo detected person, sending to cloud")
                         logger.info("Person detected")
                         self.yolo_person_detected += 1
                         
-                        
-                        await self.send_frame_to_cloud(frame, name)       # send to cloud
+                        # TODO: check if this is working!
+                        for i, img in enumerate(persons_images): 
+                            print(f"sending person {i} to cloud")
+                            await self.send_frame_to_cloud(img, name)       # send to cloud
+                                
                     else:
                         #print("Nothing detected")
                         logger.info("Nothing detected")
@@ -155,6 +161,7 @@ class EdgeServer:
                         
                 except Exception as e:
                     logger.error(f"Error processing frame: {e}")
+                    print(f"Error processing frame: {e}")
                 finally:
                     # enqueueing task is complete, no need on lock anymore.
                     self.frame_buffer.task_done()

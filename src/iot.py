@@ -59,8 +59,8 @@ class Iot:
     def _send_frame(self, frame: Frame) -> bool:
         # if not self.sio.connected:      # sometimes this var is false even if the connection is established -> leads to ValueError
         #                                 # ValueError: Client is not in a disconnected state
-        #     print('Not connected, reconnecting...')
-        #     self.sio.connect('http://edge:5000')
+            # print('Not connected, reconnecting...')
+            # self.sio.connect('http://edge:5000')
             
         for retry in range(self.emit_retry_number):
             try:
