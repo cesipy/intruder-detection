@@ -1,0 +1,4 @@
+\beamer@sectionintoc {1}{System architecture}{3}{0}{1}
+\beamer@sectionintoc {2}{Implementation details}{5}{0}{2}
+\beamer@sectionintoc {3}{Performance Evaluation}{11}{0}{3}
+\beamer@sectionintoc {4}{Evaluation}{12}{0}{4}
