@@ -1,3 +1,7 @@
+import boto3.exceptions
+import botocore
+import botocore.errorfactory
+import botocore.exceptions
 import yaml
 import boto3
 import os
@@ -98,6 +102,13 @@ class Cloud:
             
             return len(faces["FaceMatches"]) == 1
         
+        # todo: exception handling for no person found°
+        except botocore.exceptions.ClientError as e: 
+            if e.response["Error"]["Code"] == "AccessDeniedException":
+                print("no credentials provided, Please update credentials for AWS!")
+                return True
+            
+            
         except Exception as e:
             logger.error(f"Error checking face in collection: {e}")
             print(f"Error checking face in collection: {e}")

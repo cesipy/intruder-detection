@@ -3,7 +3,7 @@ import os
 # debugging: print everything, verbose "logging"
 DEBUGGING = False
 
-EVALUATION = False
+EVALUATION = os.getenv("EVALUATION", False)
 DEMO = os.getenv("IS_DEMO", False)
 
 print(f"DEMO: {DEMO}")
@@ -41,6 +41,6 @@ REKOGNITION_COLLECTION_NAME = "known_persons" # collection name
 EDGE_URL = f"http://edge:{UVICORN_PORT}"
 # EDGE_URL = f"http://34.204.51.85:{UVICORN_PORT}"
 EMIT_FAILURE_DELAY = 1.0        # 1 sec
-INITIAL_DELAY      = 15.0       # how long to wait after setup. Is due to overhead of edge provisioning.
+INITIAL_DELAY      = 20.0       # how long to wait after setup. Is due to overhead of edge provisioning.
 EMIT_RETRY_NUMBER  = 3          # how often to try to reconnect when sending
 CONNECTION_RETRY   = 10

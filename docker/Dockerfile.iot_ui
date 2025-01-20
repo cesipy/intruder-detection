@@ -17,6 +17,7 @@ COPY src/logger.py .
 
 COPY res/iot_resources/camera_set ./camera_set
 COPY res/iot_resources/evaluation_images ./evaluation_images
+COPY res/templates ./templates
 
 
 CMD ["python", "-u", "iot_ui.py"]
