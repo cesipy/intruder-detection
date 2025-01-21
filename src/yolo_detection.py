@@ -20,8 +20,8 @@ class YoloDetection:
         if model_type not in ["n", "s", "m", "l", "x"]:
             raise ValueError("Invalid model type")
 
-        os.environ["OMP_NUM_THREADS"] = "1"
-        os.environ["MKL_NUM_THREADS"] = "1"
+        # os.environ["OMP_NUM_THREADS"] = "1"
+        # os.environ["MKL_NUM_THREADS"] = "1"
         
         yolo_name = f"yolov8{model_type}"
         self.model = YOLO(yolo_name, verbose=False)
@@ -57,15 +57,16 @@ class YoloDetection:
                 
                 # extract the person in the image
                 person = img[y:h, x:w]
+                
                 hash_str = f"{x}{y}{w}{h}"
-
                 filename = f"{hash_str}-person{i}.jpg"
+                # # save the person, for debug
+                # cv2.imwrite(filename, person)
                 
-                # save the person, for debug
-                cv2.imwrite(filename, person)
-                
-                person_bytes =  person.tobytes()
-                persons.append(person_bytes)
+                _, person_bytes = cv2.imencode('.jpg', person)
+                persons.append(person_bytes.tobytes())
+
+
 
             if len(predicted_persons) > 1: 
                 return_val = True

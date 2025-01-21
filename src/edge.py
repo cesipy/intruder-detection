@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import socketio
 from datetime import datetime
+import time
 
 import uvicorn
 from pathlib import Path
@@ -36,10 +37,14 @@ class EdgeServer:
         # yolo
         self.yolo_request = 0
         self.yolo_person_detected = 0
-        
         self.frames_received = 0
-        
         self.worker_task = None
+        
+        if EVALUATION:
+            # this package was created with major help from copilot to make metrics collection easier. 
+            # not needed in the final code
+            from metrics_collector import MetricsCollector
+            self.metrics = MetricsCollector(n=5)
       
         
     def _setup_events(self):
@@ -122,6 +127,7 @@ class EdgeServer:
                 data = await self.frame_buffer.get()
                 name = data['frame_name']
                 frame = data['data']
+                process_start = time.time()
                 
                 try: 
                     np_arr = np.frombuffer(frame, np.uint8)
@@ -132,7 +138,8 @@ class EdgeServer:
                         logger.error(f"Failed to decode frame: {name}")
                     
                     self.yolo_request +=1
-
+                    person_detected = False
+                    
                     person_detected, persons_images = self.person_detection.analyze_image(
                         image=frame_dec,
                         confidence_threshold=YOLO_CONFIDENCE_THRESHOLD,
@@ -150,14 +157,33 @@ class EdgeServer:
                         # TODO: check if this is working!
                         for i, img in enumerate(persons_images): 
                             print(f"sending person {i} to cloud")
+                            cloud_start = time.time()
                             await self.send_frame_to_cloud(img, name)       # send to cloud
+                            cloud_end = time.time()
+                            
+                            cloud_latency = (cloud_end - cloud_start) * 1000
+                            if EVALUATION:
+                                self.metrics.plot_cloud_latencies(cloud_latency)
+                                logger.info(f"Cloud processing latency: {cloud_latency:.2f}ms")
                                 
                     else:
 
                         logger.info("Nothing detected")
+                    
+                    if EVALUATION:
+                        process_end = time.time()
+                        edge_latency = (process_end - process_start)*1000
+                        self.metrics.plot_edge_latencies(edge_latency)
+                        self.metrics.plot_yolo_ratio(self.yolo_request, self.yolo_person_detected)
+                        self.metrics.plot_intruder_ratio(self.total_cloud_requests, self.intruder_counter)
+                        await self.sio.emit('frame_processed', {
+                            'frame_name': name,
+                        })
+                        logger.info(f"Edge processing latency: {edge_latency:.2f}ms")
+                            
+                    
                     logger.info(f"Yolo detection ratio: {self.yolo_person_detected/self.yolo_request}")
-                    logger.info(f"yolo_person_detected: {self.yolo_person_detected}, yolo_request: {self.yolo_request}")
-                        
+                    
                 except Exception as e:
                     logger.error(f"Error processing frame: {e}")
                     print(f"Error processing frame: {e}")

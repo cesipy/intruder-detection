@@ -114,8 +114,8 @@ total intruder detected: 3, total requests: 10
 | img name | yolo person detected | rekognition intruder detected |
 | img1     |         True         |                    True       |
 | img2     |         False        |                    /          |
-| img3     |         False        |                    /          |
-| img4     |         False        |                    /          |
+| img3     |         False        |                    /          |    sollten beide personen detecten
+| img4     |         False        |                    /          |    sollten beide personen detecten
 | img5     |         False        |                    /          |
 | img6     |         True         |                    True       |
 | img7     |         False        |                    /          |
@@ -126,6 +126,25 @@ total intruder detected: 3, total requests: 10
 | img12    |         True         |                    True       |
 | img13    |         False        |                    /          |
 | img14    |         False        |                    /          |
+
+
+
+### genAI analysis
+#### iot
+Result
+
+Latency Analysis (in milliseconds):
+Average: 1.45
+Median: 0.57
+Min: 0.09
+Max: 7.06
+Standard Deviation: 2.52
+95th Percentile: 7.06
+
+Distribution:
+> 1ms: 1 frames (16.7%)
+> 5ms: 1 frames (16.7%)
+
 
 
 ## TODOs
@@ -153,3 +172,19 @@ total intruder detected: 3, total requests: 10
     - what to change/adapt in report?
     - [ ] security and fault tolerance in report
     - [ ] inconsistencies from prior versions: IOT-EDGE commication: HTTP vs message queue
+
+
+
+###### TODO heute
+- [ ] evaluation for: 
+    - [x] edge
+    - [x] iot
+    - [x] comparision simulated latency vs real latency
+    - [x] again accuracy on test set, with improved cloud
+
+- [ ] fix exception handling
+- [x] deploy everything and evaluate
+- [ ] update README for new IP handling scheme
+- [x] disable photo saving on edge
+- [x] turn off metric collection on real deployment
+
