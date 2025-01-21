@@ -1,3 +1,5 @@
+
+
 services: 
 # ---------- iot layer ----------
   camera1: 
@@ -5,69 +7,91 @@ services:
       context: .
       dockerfile: docker/Dockerfile.iot
     depends_on:
-      - edge
+      - edge1
     image: iot
     environment:
       - CAMERA=video1.avi
+      - EDGE_URL=http://edge1:5001
+   
     networks:
-      - simulation_network
+      - simulation_network1
 
   camera2: 
     build:
       context: .
       dockerfile: docker/Dockerfile.iot
     depends_on:
-      - edge
+      - edge1
     image: iot
     environment:
       - CAMERA=video2.avi
+      - EDGE_URL=http://edge1:5001
+    
     networks:
-      - simulation_network
+      - simulation_network1
 
   camera3: 
     build:
       context: .
       dockerfile: docker/Dockerfile.iot
     depends_on:
-      - edge
+      - edge2
     image: iot
     environment:
       - CAMERA=video3.avi
+      - EDGE_URL=http://edge2:5002
     networks:
-      - simulation_network
+      - simulation_network2
 
   camera4: 
     build:
       context: .
       dockerfile: docker/Dockerfile.iot
     depends_on:
-      - edge
+      - edge2
     image: iot
     environment:
       - CAMERA=video4.avi
+      - EDGE_URL=http://edge2:5002
     networks:
-      - simulation_network
+      - simulation_network2
       
-  alarm:
+  alarm1:
     build:
       context: .
       dockerfile: docker/Dockerfile.alarm
     depends_on:
-      - edge
+      - edge1
     image: alarm
+    environment:
+      - EDGE_URL=http://edge1:5001
     networks:
-      - simulation_network
+      - simulation_network1
+
+  alarm2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.alarm
+    depends_on:
+      - edge2
+    image: alarm
+    environment:
+      - EDGE_URL=http://edge2:5002
+    
+    networks:
+      - simulation_network2
 
 # ---------- edge layer ----------
-  edge:
+  edge1:
       build:
         context: .
         dockerfile: docker/Dockerfile.edge
       image: edge
       networks:
-        - simulation_network
+        - simulation_network1
         - simulation_network_edge_cloud
-  
+      ports: 
+        - "5001:5001"
       deploy:
         resources:
           limits:
@@ -78,6 +102,34 @@ services:
       environment:
         - OMP_NUM_THREADS=1
         - MKL_NUM_THREADS=1
+        - CLOUD_URL=http://cloud:5000
+        - UVICORN_PORT=5001
+
+  edge2:
+      build:
+        context: .
+        dockerfile: docker/Dockerfile.edge
+      image: edge
+      networks:
+        - simulation_network2
+        - simulation_network_edge_cloud
+      ports:
+        - "5002:5002"
+      deploy:
+        resources:
+          limits:
+            cpus: '4'
+            memory: 4G
+          reservations:
+            memory: 2G
+      environment:
+        - OMP_NUM_THREADS=1
+        - MKL_NUM_THREADS=1
+        - CLOUD_URL=http://cloud:5000
+        - UVICORN_PORT=5002
+
+
+
 
 # ---------- cloud layer ----------
 
@@ -90,7 +142,9 @@ services:
       - simulation_network_edge_cloud
 
 networks:
-  simulation_network:
+  simulation_network1:
+    driver: bridge
+  simulation_network2:
     driver: bridge
 
   simulation_network_edge_cloud:

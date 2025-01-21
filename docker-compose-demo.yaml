@@ -12,6 +12,7 @@ services:
     environment:
       - CAMERA=video1.avi
       - IS_DEMO=True
+      - EDGE_URL=http://edge:5001
     networks:
       - simulation_network
 
@@ -25,6 +26,7 @@ services:
     image: alarm
     environment:
       - IS_DEMO=True
+      - EDGE_URL=http://edge:5001
     networks:
       - simulation_network
 
@@ -49,6 +51,8 @@ services:
         - OMP_NUM_THREADS=1
         - MKL_NUM_THREADS=1
         - IS_DEMO=True
+        - CLOUD_URL=http://cloud:5000
+        - UVICORN_PORT=5001
 
 # ---------- cloud layer ----------
 

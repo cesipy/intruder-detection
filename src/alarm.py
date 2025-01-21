@@ -16,7 +16,7 @@ class Alarm:
         
         
     def _setup_events(self,):
-        @self.io.event
+        @self.sio.event
         def alarm_event():
             print('Intruder detected, alarm turned on... ', flush=True)
             

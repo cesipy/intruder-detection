@@ -86,7 +86,7 @@ class YoloDetection:
         try:
                 
             person_detected, persons = self._detect_persons(image, confidence_threshold=confidence_threshold)
-            print(f"person_detected in analyze_image: {person_detected}")
+            #print(f"person_detected in analyze_image: {person_detected}")
             return person_detected, persons
         except Exception as e:
             print(f"Error in analyze_image: {e}")
