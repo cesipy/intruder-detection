@@ -1,39 +1,58 @@
+x-edge1-env: &edge1-env
+ EDGE_URL: "http://3.85.237.189:5001"    # adapt IP
+
+x-edge2-env: &edge2-env
+ EDGE_URL: "http://3.85.237.189:5002"    # adapt IP
+
 services: 
-  camera_1: 
-    build: 
-      context: .
-      dockerfile: docker/Dockerfile.iot
-    image: iot
-    environment:
-      - CAMERA=video1.avi
+ camera_1: 
+   build: 
+     context: .
+     dockerfile: docker/Dockerfile.iot
+   image: iot
+   environment:
+     <<: *edge1-env 
+     CAMERA: video1.avi
 
+ camera_2: 
+   build: 
+     context: .
+     dockerfile: docker/Dockerfile.iot
+   image: iot
+   environment:
+     <<: *edge1-env
+     CAMERA: video2.avi
 
-  camera_2: 
-    build: 
-      context: .
-      dockerfile: docker/Dockerfile.iot
-    image: iot
-    environment:
-      - CAMERA=video2.avi
+ camera_3: 
+   build: 
+     context: .
+     dockerfile: docker/Dockerfile.iot
+   image: iot
+   environment:
+     <<: *edge2-env
+     CAMERA: video3.avi
 
-  camera_3: 
-    build: 
-      context: .
-      dockerfile: docker/Dockerfile.iot
-    image: iot
-    environment:
-      - CAMERA=video3.avi
+ camera_4: 
+   build: 
+     context: .
+     dockerfile: docker/Dockerfile.iot
+   image: iot
+   environment:
+     <<: *edge2-env
+     CAMERA: video4.avi
+ 
+ alarm1:
+   build:
+     context: .
+     dockerfile: docker/Dockerfile.alarm
+   image: alarm
+   environment:
+     <<: *edge1-env
 
-  camera_4: 
-    build: 
-      context: .
-      dockerfile: docker/Dockerfile.iot
-    image: iot
-    environment:
-      - CAMERA=video4.avi
-  
-  alarm:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.alarm
-    image: alarm
+ alarm2:
+   build:
+     context: .
+     dockerfile: docker/Dockerfile.alarm
+   image: alarm
+   environment:
+     <<: *edge2-env

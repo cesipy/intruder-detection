@@ -1,8 +1,25 @@
+x-cloud-env: &cloud-env
+ CLOUD_URL: "http://52.73.61.175:5000"  # adapt IP/port
+
 services: 
-  edge:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.edge
-    image: edge
-    ports:
-      - "5001:5001"
+ edge1:
+   build:
+     context: .
+     dockerfile: docker/Dockerfile.edge
+   image: edge
+   ports:
+     - "5001:5001"
+   environment:
+     <<: *cloud-env
+     UVICORN_PORT: 5001
+     
+ edge2:
+   build:
+     context: .
+     dockerfile: docker/Dockerfile.edge
+   image: edge
+   ports:
+     - "5002:5002"
+   environment:
+     <<: *cloud-env 
+     UVICORN_PORT: 5002

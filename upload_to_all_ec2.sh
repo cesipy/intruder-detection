@@ -1,8 +1,8 @@
 #!/bin/sh
 
-IOT_IP=54.242.117.51
-EDGE_IP=34.204.51.85
-CLOUD_IP=18.232.173.114
+IOT_IP=98.84.139.0
+EDGE_IP=3.85.237.189
+CLOUD_IP=52.73.61.175
 
 # ssh -i ~/.ssh/mac.pem ec2-user@$IOT_IP "mkdir project && rm -rf project/*"
 # ssh -i ~/.ssh/mac.pem ec2-user@$EDGE_IP "mkdir project && rm -rf project/*"
