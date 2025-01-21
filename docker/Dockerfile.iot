@@ -7,12 +7,15 @@ COPY docker/dependencies/requirements_iot.txt .
 RUN pip install -r requirements_iot.txt
 
 
-RUN mkdir -p /app/logs
+RUN mkdir -p /app/logs 
+RUN mkdir -p /app/res/plots
 
 COPY src/iot.py . 
 COPY src/utils.py .
 COPY src/config.py . 
 COPY src/logger.py .
+COPY src/rtt_collector.py .
+
 
 COPY res/iot_resources/camera_set ./camera_set
 COPY res/iot_resources/evaluation_images ./evaluation_images

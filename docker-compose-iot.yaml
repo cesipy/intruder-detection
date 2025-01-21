@@ -1,8 +1,8 @@
 x-edge1-env: &edge1-env
- EDGE_URL: "http://3.85.237.189:5001"    # adapt IP
+ EDGE_URL: "http://54.234.254.21:5001"    # adapt IP
 
 x-edge2-env: &edge2-env
- EDGE_URL: "http://3.85.237.189:5002"    # adapt IP
+ EDGE_URL: "http://54.234.254.21:5002"    # adapt IP
 
 services: 
  camera_1: 

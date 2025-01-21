@@ -3,3 +3,4 @@ python-socketio
 requests
 websocket-client
 flask
+matplotlib

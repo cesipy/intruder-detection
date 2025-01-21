@@ -1,5 +1,5 @@
 x-cloud-env: &cloud-env
- CLOUD_URL: "http://52.73.61.175:5000"  # adapt IP/port
+ CLOUD_URL: "http://50.19.48.144:5000"  # adapt IP/port
 
 services: 
  edge1:

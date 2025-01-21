@@ -14,6 +14,7 @@ COPY src/iot_ui.py .
 COPY src/utils.py .
 COPY src/config.py . 
 COPY src/logger.py .
+COPY src/rtt_collector.py .
 
 COPY res/iot_resources/camera_set ./camera_set
 COPY res/iot_resources/evaluation_images ./evaluation_images
