@@ -24,40 +24,42 @@
 \maketitle
 
 \section{Introduction}
-In our surveillance system, cameras are simulated using the WiseNET dataset. The system is designed to capture video streams and process them efficiently for real-time object and facial recognition. The video data undergoes preprocessing at the edge, minimizing the workload on the cloud, reducing latency, and optimizing the overall performance of the surveillance system. The system leverages edge devices and cloud services to ensure scalability, fast response times, and effective monitoring.  
+Our project simulates a real-world surveillance system that detects intruders in a compound based on video footage. Multiple cameras send video streams to an edge device, which preprocesses the data and queries a cloud-based face detection system. If an intruder is detected, an alarm is triggered in the specific compound.
+
+The system is designed to capture video streams and process them efficiently for real-time object and facial recognition. The video data undergoes preprocessing at the edge, minimizing the workload on the cloud, reducing latency, and optimizing the overall performance of the surveillance system. The system leverages edge devices and cloud services to ensure scalability, fast response times, and effective monitoring.  
 
 \section{System architecture}
-The video files are stored in camera containers running on a single EC2 instance \ref{fig:architecture}. Each container parses a certain video file into images using OpenCV. These sequences are then sent to edge devices at regular intervals through HTTP, simulating a real-time video stream. Communication between components is handled through a WebSocket, which is capable of managing large payloads and scaling efficiently. Additionally, the EC2 instance houses an alarm container, completing the IoT layer of the system.
+Our system is organized into three distinct layers: IoT, Edge, and Cloud, each designed to handle specific tasks of the overall process. The IoT layer serves as the entry point for data, consisting of sensors like cameras and alarms that collect real-time information from the environment. The Edge layer is responsible for local data processing, performing tasks like initial object detection to reduce the amount of data sent to the cloud. This layer ensures low-latency responses and minimizes network usage. The Cloud layer handles more intensive tasks, such as advanced facial recognition and scaling resources based on demand. 
+
+The system assumes a network topology where multiple cameras at a single location are connected to one edge device. For the simulation, we chose two edge devices, each managing four cameras but only one alarm. The edge devices operate as separate entities while sharing a common cloud service. The cloud layer is designed to handle multiple edge devices simultaneously, with the capability to trigger location-specific alarms when intruders are detected.
+
+The cameras are simulated using a section of the WiseNET dataset. Individual video files are loaded into camera containers running on a single EC2 instance (see Figure \ref{fig:architecture}). Each container parses the video file into individual images. These image sequences are then sent to the assigned edge devices at regular intervals via Socket.IO, simulating a real-time video stream. Additionally, the EC2 instance hosts an alarm container for each edge/location, completing the Internet of Things (IoT) layer of the system.
 
 \begin{figure}[h!]
     \centering
     %\includegraphics[width=1\linewidth]{res/report/DS_architecture_version2.png}
-    \includegraphics[width=1\linewidth]{DS_architecture_version2.png}
-    \caption{Example of your architectural diagram.}
+    \includegraphics[width=1\linewidth]{DS_architecture_final.png}
+    \caption{System architecture, depicting three separate layers in 2 regions}
     \label{fig:architecture}
 \end{figure}
 
-The edge layer consists of a single EC2 instance simulating edge devices in different locations. At the edge, the video data is processed using the YOLO (You Only Look Once) algorithm to detect objects and people. When a person-like object is detected, the relevant data is forwarded to a separate instance in the cloud, ensuring the system can scale dynamically based on demand.
+The edge layer also consists of an EC2 instance, simulating two distinct edge devices located in different areas. At the edge, the image stream is processed using the YOLO (You Only Look Once) algorithm. When a person-like object is detected, the relevant image snippet is forwarded to the cloud layer via a REST API and waits for a response. If a positive response is received, the edge triggers the alarm in the corresponding location. With sufficient resources in the cloud, the system can scale dynamically to meet demand.
 
-The cloud layer integrates with Amazon Rekognition to perform facial recognition, comparing the detected face against a collection of known individuals. If an unknown person is identified, the cloud server triggers an alert, which is sent back to the edge device and activates the alarm in the IoT layer. This architecture reduces the workload on the cloud, minimizes latency, and ensures the system can handle large volumes of video data in a responsive and efficient manner, making it a robust solution for surveillance applications.
+The cloud layer integrates with Amazon Rekognition to perform facial recognition, comparing the detected face against a collection of known individuals. If an unknown person is identified, the cloud server triggers an alert, which is sent back to the edge device.
 
-
+This architecture prioritizes performance and scalability. YOLO is used for fast, real-time object detection at the edge, minimizing latency. Amazon Rekognition handles facial recognition in the cloud, offloading computationally heavy tasks. WebSockets enable real-time, bidirectional communication for efficient image streaming with minimal delay. REST APIs ensure reliable data exchange, while EC2 instances simulate cameras and edge devices. 
 
 \section{Implementation details}
-Our implementation consists of three distinct layers: IoT, Edge, and Cloud, each with specific responsibilities and components.
 
-\subsection{IoT Layer}
-The IoT layer consists of 4 camera containers and one alarm container for each edge device. We utilize the WiseNET dataset (set\_3) for video simulation, which features two individuals appearing at different times in the scene - one simulating an intruder and another an employee. The camera containers are designed to have access to the complete set of videos, though each container selects only one based on a container-specific environment variable \textit{CAMERA}. The video sets are \textit{.avi-files} that are read sequentially and looped when the end is reached. 
-These videos are processed using OpenCV's read() function to extract frame sequences. The system then transmits these frames to the edge device using Socket.IO library at intervals that simulate real-time frame rates. The alarm container maintains a connection to the edge server and remains in a waiting state until triggered by an event.
 
-\subsection{Edge Layer}
-The edge layer operates as an EC2 instance running the YOLO (You Only Look Once) algorithm for object detection. The implementation is Python-based and utilizes OpenCV for frame processing. Images from the IoT layer are received by the edge device using the Socket.IO library. When the system detects a person-like object using YOLO, it immediately forwards the relevant data to the cloud server through a REST API interface.
+\subsection{Layer implementation}
+We decided that the IoT layer will consist of four camera containers and one alarm container for each edge device. This setup is an ideal simulation choice, as it minimizes the system’s computational requirements while maintaining the separation between individual devices. We use the WiseNET dataset (set\_3) for video simulation, which features two individuals appearing at different times—one simulating an intruder and the other an employee. The camera containers have access to the full set of videos, but each container selects one based on a container-specific environment variable, \textit{CAMERA}. The video sets are \textit{.avi} files that are read sequentially and looped when they reach the end.
 
-\subsection{Cloud Layer}
-The cloud implementation centers around facial recognition and alert management through a REST API built using Python's Flask package to receive images from the edge layer. The system integrates directly with AWS Rekognition for facial recognition processing, with automatic provisioning of the Rekognition collection and known faces occurring at cloud server startup using boto3. When processing is complete, the result is returned in the HTTP response. Upon detection of an unknown person, the system triggers an alert, informs the edge layer through the HTTP response, and activates the appropriate alarm.
+We process these videos using OpenCV's \textit{read()} function to extract frame sequences. The system then transmits these frames at short intervals (1 second) to the edge device via the Socket.IO library. This significantly reduces the edge device's workload while maintaining low system latency. The alarm container maintains a connection to the edge server and remains in a waiting state until triggered by an event.\hfill \break
 
-The system assumes a network topology where multiple cameras at a single location connect to one edge device. Each edge device manages multiple cameras but only one alarm. The cloud layer is designed to handle multiple edge devices simultaneously, with the capability to trigger location-specific alarms when intruders are detected.
+We implemented the edge layer as an EC2 instance running the YOLO (You Only Look Once) algorithm for object detection. The implementation is Python-based and utilizes OpenCV for frame processing. Each incoming image is analyzed for person-like objects. When such an object is detected, YOLO creates a snippet of the object and immediately forwards it to the cloud server via a REST API, ensuring a response. In the case of a positive detection, an alarm is triggered using Socket.IO for communication back to the IoT layer.\hfill \break
 
+We let the cloud layer to focus on facial recognition and alert management through a REST API built using Python's Flask package to receive images from the edge layer. The system integrates directly with AWS Rekognition for facial recognition processing, with the Rekognition collection and known faces automatically provisioned at cloud server startup using boto3. Once processing is complete, the result is returned in the HTTP response. 
 
 \subsection{Implementation Decisions}
 In the software stack where several options were available and we decided to go for specific ones. This section provides rationale for the choices made. This includes the programming language, communication libraries and detection algorithms.
