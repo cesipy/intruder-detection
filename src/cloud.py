@@ -106,6 +106,21 @@ class Cloud:
         except botocore.exceptions.ClientError as e: 
             if e.response["Error"]["Code"] == "AccessDeniedException":
                 print("no credentials provided, Please update credentials for AWS!")
+                logger.info("no credentials provided, Please update credentials for AWS!")
+                return True
+            elif e.response["Error"]["Code"] == "InvalidParameterException":
+                # This is the error for no face in image
+                # full message: 
+                # botocore.errorfactory.InvalidParameterException: An error occurred (InvalidParameterException) when calling the SearchFacesByImage operation: 
+                # There are no faces in the image. Should be at least 1
+                print("No face detected in image")
+                logger.info("No face detected in image")
+                return True
+
+            else:
+                error_code = e.response.get("Error", {}).get("Code", "")
+                print(f"AWS error: {error_code}")
+
                 return True
             
             
@@ -115,6 +130,7 @@ class Cloud:
             
             #when there is some error, we want to return True, as otherwise
             # the server would return that there is an intruder - > not true.
+
             return True    
         
         

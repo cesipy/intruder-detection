@@ -55,3 +55,8 @@ EMIT_RETRY_NUMBER  = 3          # how often to try to reconnect when sending
 CONNECTION_RETRY   = 10
 
 print(f"EDGE url: {EDGE_URL}")
+
+
+# visualizer config
+# --------------------------------------------------
+PLOT_PATH_PREFIX = "res/plots"
