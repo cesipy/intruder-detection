@@ -71,7 +71,7 @@ class Cloud:
 
             response = self.rekognition_client.detect_labels(
                 Image={'Bytes': img},
-                MinConfidence=90
+                MinConfidence=REKOGNITION_CONFIDENCE_THRESHOLD
             )
             
             for label in response['Labels']:
@@ -174,7 +174,9 @@ def detect_intruder():
     
     img_bytes = img.read()      # convert to bytes, so we can send it to rekognition
     
-    #result = cloud.process_image(img_bytes)
+    # check if the frame contains a face in the rekognition collection. 
+    # our assumption: yolo detects persons and we receive only persons here.
+    # so when face is not in collection => intruder. 
     result = cloud.is_face_in_collection(img_bytes)
     logger.info(f"the face is in the collection: {result}")
     

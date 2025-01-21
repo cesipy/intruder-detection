@@ -24,7 +24,7 @@ class EdgeServer:
         
         weights_path = Path("res/weights")
         weights_path.mkdir(parents=True, exist_ok=True)
-        self.person_detection = YoloDetection()
+        self.person_detection = YoloDetection(model_type=YOLO_MODEL_SIZE)
         
         # deque for faster efficiency in comparision to list
         # we have a lot of frames in the buffer -> up to 10000 or even more in theoretical production lol
@@ -91,15 +91,12 @@ class EdgeServer:
                 debug_dir = Path("debug_frames")
                 debug_dir.mkdir(exist_ok=True)
                 
-                np_arr = np.frombuffer(frame_data, np.uint8)
-                frame_decoded = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
                 
                 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
                 frame_path = debug_dir / f"intruder_{timestamp}.jpg"
                 
-                #save as jpg
-                cv2.imwrite(str(frame_path), frame_decoded, [cv2.IMWRITE_JPEG_QUALITY, 95])
-
+                # with open(str(frame_path), 'wb') as f:
+                #     f.write(frame_data)
                 self.intruder_counter +=1
                 
                 await self.trigger_alarm()
@@ -136,10 +133,12 @@ class EdgeServer:
                     
                     self.yolo_request +=1
 
-                    # TODO: include the multiple sends
-                    person_detected, persons_images = self.person_detection.analyze_image(frame_dec)
+                    person_detected, persons_images = self.person_detection.analyze_image(
+                        image=frame_dec,
+                        confidence_threshold=YOLO_CONFIDENCE_THRESHOLD,
+                    )
                     
-                    
+                    # only for demo, cleaner printing
                     if DEMO: 
                         print(f"yolo preprocessing, person detected: {person_detected}")
                     if person_detected: 
@@ -154,7 +153,7 @@ class EdgeServer:
                             await self.send_frame_to_cloud(img, name)       # send to cloud
                                 
                     else:
-                        #print("Nothing detected")
+
                         logger.info("Nothing detected")
                     logger.info(f"Yolo detection ratio: {self.yolo_person_detected/self.yolo_request}")
                     logger.info(f"yolo_person_detected: {self.yolo_person_detected}, yolo_request: {self.yolo_request}")

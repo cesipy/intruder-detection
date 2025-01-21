@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import cv2
+from config import *
 
 from ultralytics import YOLO
 
@@ -22,8 +23,8 @@ class YoloDetection:
         os.environ["OMP_NUM_THREADS"] = "1"
         os.environ["MKL_NUM_THREADS"] = "1"
         
-        yolo_name = f"yolo5v{model_type}"
-        self.model = YOLO("yolov8m.pt", verbose=False)
+        yolo_name = f"yolov8{model_type}"
+        self.model = YOLO(yolo_name, verbose=False)
         self.model.cpu()
         
     def _detect_persons(self, image, confidence_threshold=0.5): 
@@ -116,17 +117,7 @@ def main():
         
     print(f"Predictions: {preds}")
     
-    # print(results)
-    # counter = 0
-    # for result in results: 
-    #     print(f"-----------------------result-{counter}----------------------")
-    #     prediction =result.boxes.data[(result.boxes.cls == 0)]
-    #     if len(prediction) >= 1: 
-    #         print("true")
-    #     print(result.boxes.data[(result.boxes.cls == 0)])
-    #     counter+=1
 
-    #     result.show()
 
     
     

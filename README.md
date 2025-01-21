@@ -110,6 +110,24 @@ total intruder detected: 3, total requests: 10
 ### overal system accu. and latency
 
 
+### table
+| img name | yolo person detected | rekognition intruder detected |
+| img1     |         True         |                    True       |
+| img2     |         False        |                    /          |
+| img3     |         False        |                    /          |
+| img4     |         False        |                    /          |
+| img5     |         False        |                    /          |
+| img6     |         True         |                    True       |
+| img7     |         False        |                    /          |
+| img8     |         True         |                    True       |
+| img9     |         False        |                    /          |
+| img10    |         False        |                    /          |    sollte eigentlich true, schwer zu erkennen
+| img11    |         False        |                    False      |
+| img12    |         True         |                    True       |
+| img13    |         False        |                    /          |
+| img14    |         False        |                    /          |
+
+
 ## TODOs
 - [ ] edge is too big - 1.76 GB - due to torch i guess
 - [ ] exception handling for no person found°

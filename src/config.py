@@ -6,13 +6,20 @@ DEBUGGING = False
 EVALUATION = os.getenv("EVALUATION", False)
 DEMO = os.getenv("IS_DEMO", False)
 
-print(f"DEMO: {DEMO}")
 
 
 
 # edge config
 # --------------------------------------------------
 UVICORN_PORT = 5001
+ #different model types 
+    # n - nano
+    # s - small
+    # m - medium
+    # l - large
+    # x - xlarge
+YOLO_MODEL_SIZE = "x"
+YOLO_CONFIDENCE_THRESHOLD = 0.6
 
 
 # cloud config
@@ -34,6 +41,7 @@ KNOWN_FACES_PATH = "res/known_faces"
 # Rekognition stuff
 FACE_MATCH_THRESHOLD = 75   # threshold for face match in collection in percent
 REKOGNITION_COLLECTION_NAME = "known_persons" # collection name
+REKOGNITION_CONFIDENCE_THRESHOLD = 0.85
 
 
 # iot config

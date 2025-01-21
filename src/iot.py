@@ -29,6 +29,10 @@ class Iot:
         """
         established connection to sio client with exponential backoff.
         """
+        # dont need to connct if already connected!
+        if self.sio.connected: 
+            logger.info("already connected!")
+            return
         init_timer = 1
         
         count = 1
