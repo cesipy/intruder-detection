@@ -16,5 +16,5 @@ class Frame:
     
 def simulate_latency(base_ms=150, sd_ms=20):
     # add gaussian distributed latency to the system
-    latency = random.gauss(base_ms, sd_ms)
+    latency = random.gauss(base_ms, sd_ms) / 1000
     time.sleep(latency)

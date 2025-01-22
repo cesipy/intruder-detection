@@ -87,7 +87,7 @@ Video files stored on iot, opened with opencv
     \item Setup once, then just send data
 \end{itemize}
 \begin{center}
-    \includegraphics[width=0.6\textwidth]{./res/socket-io-logo-1.jpeg}
+    \includegraphics[width=0.45\textwidth]{./res/socket-io-logo-1.jpeg}
 \end{center}
 
 \end{frame}
@@ -112,7 +112,7 @@ Video files stored on iot, opened with opencv
 \end{itemize}
 \begin{center}
 
-    \includegraphics[width=0.4\textwidth]{./res/flask.png}
+    \includegraphics[width=0.34\textwidth]{./res/flask.png}
 \end{center}
 % % TODO: incorporate this in the evaluation
 %     \textbf{Performance Metrics}
@@ -128,25 +128,12 @@ Video files stored on iot, opened with opencv
 \frametitle{Cloud Implementation Details}
     \begin{itemize}
         \item REST API endpoint
-        \item AWS Rekognition
+        \item Wrapper for AWS Rekognition
     \end{itemize}
     \begin{center}
         \includegraphics[width=0.7\linewidth]{./res/rekognition.png}
     \end{center}
 
-
-    % \textbf{AWS Rekognition Integration}
-    % \begin{itemize}
-    % \item Face collection management 
-    % \item Known face indexing
-    % \item High-confidence matching
-    % \end{itemize}
-    % \textbf{Security Features}
-    % \begin{itemize}
-    % \item Configurable confidence thresholds
-    % \item Automatic collection management
-    % \item Error handling and logging
-    % \end{itemize}
 
 \end{frame}
 
@@ -173,7 +160,7 @@ Video files stored on iot, opened with opencv
 \begin{itemize}
     \item Edge processing latency (yolo processing)
     \item Cloud latency (AWS Rekognition)
-    \item round-time trip time from camera to alarm
+    \item Round-trip time from camera to alarm
 \end{itemize}
 \end{frame}
 
@@ -186,12 +173,14 @@ Video files stored on iot, opened with opencv
     \begin{minipage}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{./res/edge_latencies.png}
+        YOLO person detection latency
         %\caption{Edge processing latencies showing YOLO object detection performance on t2.medium instance.}
     \end{minipage}
     \hfill
     \begin{minipage}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{./res/cloud_latencies.png}
+        Cloud latency (AWS Rekognition)
         %\caption{Cloud processing latencies showing AWS Rekognition performance.}
     \end{minipage}
 \end{figure}
@@ -200,7 +189,7 @@ Video files stored on iot, opened with opencv
 
 
 \begin{frame}
-    Round trip time: camera frame to alarm.
+    Round-trip time: camera frame to alarm.
     \frametitle{Evaluation - Round Trip Time}
 
     \begin{center}
@@ -214,7 +203,7 @@ Video files stored on iot, opened with opencv
     \frametitle{Evaluation - System Bottleneck}
     \begin{itemize}
         \item System bottleneck on edge
-        \item new frames / second $>$ frame processing rate $\rightarrow$ very high latency
+        \item New frames / second $>$ frame processing rate $\rightarrow$ very high latency
     \end{itemize}\
     
 \begin{figure}
@@ -233,7 +222,5 @@ Video files stored on iot, opened with opencv
 \end{figure}
 \end{frame}
 
-
-\bibliography{main}
 
 \end{document}
