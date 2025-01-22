@@ -31,6 +31,7 @@ COPY res/weights/yolov5su.pt app/res/weights/yolov5su.pt
 COPY src/config.py . 
 COPY src/logger.py .
 COPY src/metrics_collector.py .
+COPY src/utils.py .
 
 
 CMD ["python", "-u", "edge.py"]

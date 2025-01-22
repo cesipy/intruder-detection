@@ -1,12 +1,25 @@
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
 % The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+
+\usepackage{newtxtext}  % cooler font
+%\usepackage{newtxmath}
+
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithmic}
 \usepackage{graphicx}
+
 \usepackage{textcomp}
 \usepackage{xcolor}
+%cool color for links
+\definecolor{linkblue}{RGB}{51,102,187}  
+\usepackage[colorlinks=true, 
+            allcolors=linkblue,
+            urlcolor=linkblue,
+            linkcolor=linkblue,
+            citecolor=linkblue]{hyperref}
+
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -38,7 +51,7 @@ The cameras are simulated using a section of the WiseNET dataset. Individual vid
 \begin{figure}[h!]
     \centering
     %\includegraphics[width=1\linewidth]{res/report/DS_architecture_version2.png}
-    \includegraphics[width=1\linewidth]{DS_architecture_final.png}
+    \includegraphics[width=1\linewidth]{res/DS_architecture_final.png}
     \caption{System architecture, depicting three separate layers in 2 regions}
     \label{fig:architecture}
 \end{figure}
@@ -59,7 +72,17 @@ We process these videos using OpenCV's \textit{read()} function to extract frame
 
 We implemented the edge layer as an EC2 instance running the YOLO (You Only Look Once) algorithm for object detection. The implementation is Python-based and utilizes OpenCV for frame processing. Each incoming image is analyzed for person-like objects. When such an object is detected, YOLO creates a snippet of the object and immediately forwards it to the cloud server via a REST API, ensuring a response. In the case of a positive detection, an alarm is triggered using Socket.IO for communication back to the IoT layer.\hfill \break
 
-We let the cloud layer to focus on facial recognition and alert management through a REST API built using Python's Flask package to receive images from the edge layer. The system integrates directly with AWS Rekognition for facial recognition processing, with the Rekognition collection and known faces automatically provisioned at cloud server startup using boto3. Once processing is complete, the result is returned in the HTTP response. 
+We let the cloud layer to focus on facial recognition and alert management through a REST API built using Python's Flask package to receive images from the edge layer. The system integrates directly with AWS Rekognition for facial recognition processing, with the Rekognition collection and known faces automatically provisioned at cloud server startup using boto3. Once processing is complete, the result is returned in the HTTP response.
+
+
+\begin{figure}[!h]
+    \includegraphics[width=1\linewidth]{./res/sequenz_diagram.png}
+    \caption{Sequence diagram of the system}
+    \label{fig:sequence_diagram}
+\end{figure}
+
+Figure \ref{fig:sequence_diagram} shows the sequence diagram of the system. The camera containers send frames to the edge device. The edge device processes the frames, extracts persons and sends them to the cloud. The cloud processes the frames and sends a response back to the edge. The edge triggers the alarm if an intruder is detected. 
+
 
 \subsection{Implementation Decisions}
 In the software stack where several options were available and we decided to go for specific ones. This section provides rationale for the choices made. This includes the programming language, communication libraries and detection algorithms.
@@ -112,7 +135,7 @@ For example, we implemented a wrapper class for yolo usage, so we can use simply
 Internally this function runs the yolo image detection, and returns True if a person was detected, otherwise False. 
 
 \begin{center}
-\includegraphics[width=1\linewidth]{analyze_image-function.png}
+\includegraphics[width=1\linewidth]{res/analyze_image-function.png}
 \end{center}
 
 \section{Testing Setup}
@@ -164,11 +187,123 @@ This deployment configuration provides a cost-effective setup while ensuring ade
 \begin{figure}[h!]
     \centering
     %\includegraphics[width=1\linewidth]{res/report/DS_architecture_version2.png}
-    \includegraphics[width=1\linewidth]{deployment2.png}
+    \includegraphics[width=1\linewidth]{res/deployment2.png}
     \caption{Sucessful detection of intruders.}
     \label{fig:deployment}
 \end{figure}
 \section{Evaluation}
-Evaluation of the response time and scalability (number of devices and traffic) to prove the correctness of your implementation. The more detailed the better. 
+For the evaluation of our distributed surveillance system, we conducted extensive performance testing across all three layers (IoT, Edge, and Cloud) to assess the system's efficiency and reliability. Our evaluation focused on several key metrics: processing latencies at both edge and cloud layers, YOLO detection accuracy ratios, and round-trip time (RTT) distributions under different deployment scenarios. We analyzed these metrics in both local Docker environments and AWS EC2 deployments to understand the system's behavior under various conditions. 
+
+As stated in the Deployment section, we used three EC2 instances representing IOT, Edge and Cloud layer respectively.  The Edge instance was deployed on a t2.medium instance, while the Cloud instance was deployed on a t2.micro instance. The IOT instance was also deployed on a t2.micro instance. 
+The most compute is needed in the edge layer, as the YOLO algorithm is computationally expensive. The cloud layer is the least computationally expensive, as the facial recognition is offloaded to AWS Rekognition. 
+
+%TODO: describe dataset, what part of wisenet was used? frank weisst du welcher teil? hat es einen namen, oder einfach nur irgendwas?
+We decided to use parts of the WiseNET dataset to evaluate our distributed system. The videos are stored and processed on the IoT to send frames to the system. For the experiment we chose a dataset with two individuals appearing at different times in an office scenario.  One person simulates an intruder and the other an employee.
+In the following we focus also on two metrics that are dependent on the dataset. The YOLO detection ratio is calculated as the number of persons detected divided by the total number of frames processed. The intruder detection ratio is calculated as the number of intruders detected divided by the total number of frames processed. 
+As we had no time to manually check every result, we cannot verify the correctness of the detection. 
+But in the section \ref{sec:detection_experiment} we describe the detection experiment in more detail. With a manually labelled dataset we could calculate the precision and recall of the YOLO detection. 
+\\
+
+Initially our deployment evaluations showed low latencies on the cloud. The figure in the appendix \ref{fig:cloud_latencies_old} in the Appendix shows the latencies of the cloud processing. The latencies are very low, at a median latency of 78.1ms. Therefore we decided to simulate latencies in the system. 
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{./res/evaluation_without_latencies/cloud_latencies_old.png}
+    \caption{Boxplot of cloud processing latencies"}
+    \label{fig:cloud_latencies_old}
+\end{figure}
+
+Here we added gaussian  ($x \sim \mathcal{N}(150, 20)$) latencies to Edge-Cloud connection. In our assumption, Edge devices are at the same location as the cameras, so the latencies are very low. The cloud is located in a different region, so the latencies are higher. 
+\hfill \break
+\hfill \break
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{./res/evaluation_with_latencies/edge_latencies.png}
+    \caption{Edge processing latencies showing YOLO object detection performance on t2.medium }
+    \label{fig:edge_latencies}
+\end{figure}
+
+The edge processing performance shown in Figure \ref{fig:edge_latencies} demonstrates that our YOLO-based object detection system operates with reasonable efficiency on the t2.medium instance. The median processing time of 376.5ms indicates that the edge layer can process multiple frames per second. While there are some outliers reaching up to 2250ms, the majority of processing times fall within an acceptable range (std: 396.2ms). This performance is suitable for real-time surveillance, as our system processes frames at 1-second intervals.
+Our YOLO detection statistics (Figure \ref{fig:yolo_ratios}) show a detection rate of 17.9\%, with 20 detections out of 112 total frames processed. This ratio indicates that our edge preprocessing effectively filters out frames without human presence, significantly reducing the load on the cloud layer. For the tested office scenario from the WiseNET dataset, this detection rate aligns with our expectations of occasional human presence rather than continuous detection.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{./res/evaluation_with_latencies/yolo_ratios.png}
+    \caption{YOLO detection ratios - number of persons detected / total frames processed}
+    \label{fig:yolo_ratios}
+\end{figure}
+
+
+The end-to-end system performance is captured in the RTT distribution (Figure \ref{fig:rtt_distribution}). With a median RTT of 467.2ms and a mean of 698.9ms, the system demonstrates responsive performance even with our simulated Gaussian network latency ($\mathcal{N}(150, 20)$ ms) between Edge and Cloud. The standard deviation of 556.1ms indicates some variability in processing times, but the overall distribution remains within acceptable bounds for our surveillance use case. However the RTT heavily relies on the the amount of frames send to the Edge device and the computing power of the Edge processing instance. In \ref {sec:latency_analysis} we discuss the latency analysis in more detail.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{./res/evaluation_with_latencies/rtt_distribution.png}
+    \caption{Round-trip time (RTT) boxplot showing end-to-end system latency}
+    \label{fig:rtt_distribution}
+\end{figure}
+
+In Figure \ref{fig:intruder_ratios} we demonstrate the intruder detection ratios, showing the number of intruders detected relative to the total number of frames processed. The system detected 20 intruders out of 44 frames. Again, this performance cannot be verified without a manually labelled dataset. 
+
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{./res/evaluation_with_latencies/intruder_ratios.png}
+    \caption{Intruder detection ratios - number of intruders detected / total frames processed}
+    
+    \label{fig:intruder_ratios}
+\end{figure}
+
+
+\subsection{Latency analysis}
+\label{sec:latency_analysis}
+The main bottleneck of the distributed intruder detection system lies in the Edge layer. The Edge layer's implementation consists of a worker thread and a queue. The worker sequentially processes frames from the queue. Whenever the rate of new incoming frames is higher than the processing rate, the queue will fill up, leading to increased latencies. This is the main reason for the high standard deviation in the RTT distribution. This problem depends mainly on the amount of frames sent per minute per device and the number of IoT devices connected to a single Edge device. 
+\\
+
+There are three variables to adjust in this setup: 
+\begin{itemize}
+    \item limit the rate of sending frames of the cameras.
+    \item limit the number of connected devices per Edge device.
+    \item increase the resources of the Edge device and deploy multiple worker threads.
+\end{itemize}
+\hfill \break
+
+
+We experimented mainly with differnt rates of sending frames to the Edge device. The framerate of the WiseNET dataset is 30 fps. We implemented a mechanism to send only every nth frame.
+
+We conducted the experiment for two IoTs per Edge device with different frame rates. The results are shown in Figure \ref{fig:rtt_distribution_docker20} and Figure \ref{fig:rtt_distribution_docker60}.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{./res/rtt_distribution-local_docker_test20skip.png}
+    \caption{Round-trip time (RTT) boxplot showing end-to-end system latency (on Docker with 20 frames skipped)}
+    \label{fig:rtt_distribution_docker20}
+\end{figure}
+
+Figure \ref{fig:rtt_distribution_docker20} shows the RTT boxplot for the system with 20 frames skipped. This means, that $\frac{2}{3}$ frames per second.
+This resulted in really long latencies with a median of 13400s. The system was not able to process the frames in time and the round-trip times increased exponentially. 
+
+
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{./res/rtt_distribution-docker_test-60skip.png}
+    \caption{Round-trip time (RTT) boxplot showing end-to-end system latency (on Docker with 60 frames skipped)}
+    \label{fig:rtt_distribution_docker60}
+\end{figure}
+
+Figure \ref{fig:rtt_distribution_docker60} on the other hand shows the RTT boxplot for the system with 60 frames skipped. This means, that only 0.5 frames per second are sent to the Edge device. The system was able to process the frames in time and the round-trip times are very low. the median here is 350ms. 
+
+This analysis shows the importance of the right parameters for the system. 
+
+
+
+
+\subsection{Detection experiment}
+\label{sec:detection_experiment}
+Werd ich noch machen falls zeit ist. von 14 bildern, wie viele werden richtig erkannt? alles manuell gelabelt
+
+
 
 \end{document}

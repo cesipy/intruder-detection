@@ -1,3 +1,5 @@
+import time
+import random
 class Frame:
     
     def __init__(self, frame_name, frame_data):
@@ -10,3 +12,9 @@ class Frame:
     
     def get_explicit_string(self) -> str:
         return f'Frame name: {self.frame_name}, Frame data: {self.frame_data}'
+    
+    
+def simulate_latency(base_ms=150, sd_ms=20):
+    # add gaussian distributed latency to the system
+    latency = random.gauss(base_ms, sd_ms)
+    time.sleep(latency)

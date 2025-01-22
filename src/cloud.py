@@ -11,6 +11,7 @@ import flask
 from typing import List
 
 from config import *
+from utils import simulate_latency
 from logger import Logger
 
 
@@ -199,6 +200,9 @@ def detect_intruder():
     # we want to return whether the person is an intruder or not, 
     # result states if face is in collection -> so negate the result. 
     result = not result
+    
+    # simulate latency
+    simulate_latency(base_ms=150, sd_ms=20)
 
     response = {"result": result}
     

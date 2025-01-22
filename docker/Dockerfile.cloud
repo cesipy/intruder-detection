@@ -11,6 +11,7 @@ COPY src/cloud.py .
 
 COPY src/config.py .
 COPY src/logger.py .
+COPY src/utils.py .
 
 RUN mkdir -p /app/logs
 

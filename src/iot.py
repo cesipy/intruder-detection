@@ -28,8 +28,8 @@ class Iot:
         self.pending_frames = {}
        
         if EVALUATION: 
-            # this tool is used for metris. this was is disabled for the final code, as we dont need it anymore. 
-            # was created using copilot, so credits to copilot
+            # this tool is used for metrics. this was is disabled for the final code, as we dont need it anymore. 
+            # was created using copilot, so credits to copilotc
             from rtt_collector import RTTMetricsCollector
             self.metrics = RTTMetricsCollector(n=1)
             
@@ -188,15 +188,9 @@ def main():
     time.sleep(INITIAL_DELAY)      # wait for server, maybe put in init function of Iot
     iot = Iot()                     # initial connection is established here
     
-    if EVALUATION: 
-        iot.evaluation("evaluation_images")
-        print("Evaluation finished")
-        logger.info("Evaluation finished")
-    
-    else: 
-        video = open_video(iot.camera_name)
+    video = open_video(iot.camera_name)
         
-        iot.process_frames(video)
+    iot.process_frames(video)
 
 if __name__ == '__main__':
     main()
