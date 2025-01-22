@@ -33,6 +33,7 @@
 \IEEEauthorblockN{3\textsuperscript{rd} Frantisek Sova}
 }
 %TODO: explain new async.queue for edge: queue collects data, and asynchronous worker processes it
+%TODO: fix lower-/upercase for edge and cloud
 
 \maketitle
 
@@ -42,9 +43,9 @@ Our project simulates a real-world surveillance system that detects intruders in
 The system is designed to capture video streams and process them efficiently for real-time object and facial recognition. The video data undergoes preprocessing at the edge, minimizing the workload on the cloud, reducing latency, and optimizing the overall performance of the surveillance system. The system leverages edge devices and cloud services to ensure scalability, fast response times, and effective monitoring.  
 
 \section{System architecture}
-Our system is organized into three distinct layers: IoT, Edge, and Cloud, each designed to handle specific tasks of the overall process. The IoT layer serves as the entry point for data, consisting of sensors like cameras and alarms that collect real-time information from the environment. The Edge layer is responsible for local data processing, performing tasks like initial object detection to reduce the amount of data sent to the cloud. This layer ensures low-latency responses and minimizes network usage. The Cloud layer handles more intensive tasks, such as advanced facial recognition and scaling resources based on demand. 
+Our system is organized into three distinct layers: IoT, edge, and cloud, each designed to handle specific tasks of the overall process. The IoT layer serves as the entry point for data, consisting of sensors like cameras and alarms that collect real-time information from the environment. The edge layer is responsible for local data processing, performing tasks like initial object detection to reduce the amount of data sent to the cloud. This layer ensures low-latency responses and minimizes network usage. The cloud layer handles more intensive tasks, such as advanced facial recognition and scaling resources based on demand. 
 
-The system assumes a network topology where multiple cameras at a single location are connected to one edge device. For the simulation, we chose two edge devices, each managing four cameras but only one alarm. The edge devices operate as separate entities while sharing a common cloud service. The cloud layer is designed to handle multiple edge devices simultaneously, with the capability to trigger location-specific alarms when intruders are detected.
+The system assumes a network topology where multiple cameras at a single location are connected to one edge device. For the simulation, we chose two edge devices, each managing two cameras but only one alarm. The edge devices operate as separate entities while sharing a common cloud service. The cloud layer is designed to handle multiple edge devices simultaneously, with the capability to trigger location-specific alarms when intruders are detected.
 
 The cameras are simulated using a section of the WiseNET dataset. Individual video files are loaded into camera containers running on a single EC2 instance (see Figure \ref{fig:architecture}). Each container parses the video file into individual images. These image sequences are then sent to the assigned edge devices at regular intervals via Socket.IO, simulating a real-time video stream. Additionally, the EC2 instance hosts an alarm container for each edge/location, completing the Internet of Things (IoT) layer of the system.
 
@@ -66,9 +67,10 @@ This architecture prioritizes performance and scalability. YOLO is used for fast
 
 
 \subsection{Layer implementation}
-We decided that the IoT layer will consist of four camera containers and one alarm container for each edge device. This setup is an ideal simulation choice, as it minimizes the system’s computational requirements while maintaining the separation between individual devices. We use the WiseNET dataset (set\_3) for video simulation, which features two individuals appearing at different times—one simulating an intruder and the other an employee. The camera containers have access to the full set of videos, but each container selects one based on a container-specific environment variable, \textit{CAMERA}. The video sets are \textit{.avi} files that are read sequentially and looped when they reach the end.
+We decided that the IoT layer will consist of two camera containers and one alarm container for each edge device. This setup is an ideal simulation choice, as it minimizes the system’s computational requirements while maintaining the separation between individual devices. The number of cameras can be easily scaled to more devices, and the alarm containers can be triggered independently based on the edge device's response.
+We use the WiseNET dataset (set\_3) for video simulation, which features two individuals appearing at different times—one simulating an intruder and the other an employee. The camera containers have access to the full set of videos, but each container selects one based on a container-specific environment variable, \textit{CAMERA}. The video sets are \textit{.avi} files that are read sequentially and looped when they reach the end.
 
-We process these videos using OpenCV's \textit{read()} function to extract frame sequences. The system then transmits these frames at short intervals (1 second) to the edge device via the Socket.IO library. This significantly reduces the edge device's workload while maintaining low system latency. The alarm container maintains a connection to the edge server and remains in a waiting state until triggered by an event.\hfill \break
+We process these videos using OpenCV's \textit{read()} function to extract frame sequences. The system then transmits these frames at short intervals (2 seconds) to the edge device via the Socket.IO library. This significantly reduces the edge device's workload while maintaining low system latency. The alarm container maintains a connection to the edge server and remains in a waiting state until triggered by an event.\hfill \break
 
 We implemented the edge layer as an EC2 instance running the YOLO (You Only Look Once) algorithm for object detection. The implementation is Python-based and utilizes OpenCV for frame processing. Each incoming image is analyzed for person-like objects. When such an object is detected, YOLO creates a snippet of the object and immediately forwards it to the cloud server via a REST API, ensuring a response. In the case of a positive detection, an alarm is triggered using Socket.IO for communication back to the IoT layer.\hfill \break
 
@@ -85,54 +87,49 @@ Figure \ref{fig:sequence_diagram} shows the sequence diagram of the system. The 
 
 
 \subsection{Implementation Decisions}
-In the software stack where several options were available and we decided to go for specific ones. This section provides rationale for the choices made. This includes the programming language, communication libraries and detection algorithms.
+In our software stack, we had several options to choose from, and we made specific decisions based on our requirements. This section explains the rationale behind our choices, including the programming language, communication libraries, and detection algorithms.
 \\
 
 \subsubsection{Communication}
-The distributed system consists of several components that need to communicate in an efficient way - that's what makes it a distributed system. 
-Namely two main interfaces need communictation:
+The distributed system comprises several components that must communicate efficiently to function as a cohesive unit. Specifically, there are two primary communication interfaces:
 \\
 \begin{itemize}
-    \item IOT - Edge communication
+    \item IoT - Edge communication
     \item Edge - Cloud communication
 \end{itemize}
 
 \hfill \break
-For the \textbf{IOT - Edge} communication we decided to use socket.io. This Python library enables communication with websockets. As we need to send a constant stream of data, this communication model seems to be the best fit. The protocol includes a full-duplex communication channel build ontop of the network layer. Its a consistent communication model that requires minimal overhead for setting up the connection. 
+For the \textit{IoT - Edge} communication we decided to use socket.io. This Python library enables communication with websockets. As we need to send a constant stream of data, this communication model seems to be the best fit. The protocol includes a full-duplex communication channel build ontop of the network layer. Its a consistent communication model that requires minimal overhead for setting up the connection. 
 
 This model handles many frames transfered very well and is very efficient. In comparision to HTTP that would require a new connection for every frame, this model is much more efficient. 
 \\
 
-%TODO: insert example of socket.io communication wit sockets.
 
-For the \textbf{Edge - Cloud} communication we decided to use a REST API. This approach was implemented using Python's \textit{Flask} package to allow the distributed processing of the data. 
-
-Our assumption for the choice of the communication model was that the data transfer between Edge and Cloud is not as frequent as between IOT and Edge. Ideally only a few requests per hour are sent to the cloud, as there are only few intruders in the office. When we would have tens of thousands of requests to the server per minute, we would argue there is something wrong in the office. 
+For the \textit{Edge - Cloud} communication we decided to use a REST API. This approach was implemented using Python's \textit{Flask} package to allow the distributed processing of the data. 
+Our assumption for the choice of the communication model was that the data transfer between edge and cloud is less frequent compared to the data transfer between IoT and edge. Ideally, only a few requests per minute are sent to the cloud, as the edge device filters out most of the non-relevant frames. This reduces the load on the cloud server and ensures efficient processing of critical data.
 
 Given our assumption, the overhead of setting up a new connection for every request is not as significant. Having a constant connection open to the cloud would be a waste of resources. 
 
 The REST API is a stateless communication model that uses HTTP requests to transfer data. It is simple to implement and easy to understand. 
 
 Whenever the preprocessing model (YOLO) detects a person in a frame, it sends the frame in a HTTP request to the cloud for further processing. 
-The cloud immediately processes the image and sends the response back in the HTTP response. We efficiently use the request and respons for our computation. 
+The cloud immediately processes the image and sends the response back in the HTTP response. We efficiently use the request and response for our computation. 
 \hfill \break
 
 \subsubsection{Dection Models}
 In the system two detection models are used, namely: 
 \begin{itemize}
-\item YOLO: preprocessing images on Edge
-\item AWS Rekognition: facial recognition on Cloud
+\item YOLO: preprocessing images on edge
+\item AWS Rekognition: facial recognition on cloud
 \end{itemize}
 
 \hfill \break
 
-It was obvious to us to use Rekognition, as we already tested this AWS service in the course of the semester. It is a very powerful tool for facial recognition and very easy to use. 
+We chose AWS Rekognition for facial recognition due to its powerful capabilities and ease of use. Having tested this service earlier in the semester, we found it to be a reliable and efficient solution for our needs.
 
 YOLO was chosen as the detection model for the edge, as it is a very efficient object detection model. It is able to process images in real-time and is very accurate. There were multiple problems in setting up the model in Docker, especially with dependencies for the \textit{pytorch} library. We found a workaround using \textit{ultralytics} package, that wrappes \textit{torch} and special classes for YOLO into one package. Unfortunately the package is exceptionally big and exceeds the maximum image size of 1GB. We had no time to further optimize the size of the edge layer and decided to use the large image. 
 
-YOLO and Rekognition can be easily encapsulated and used in the system. 
-For example, we implemented a wrapper class for yolo usage, so we can use simply the \textit{yoloDetection.analyseImage(image)} function. 
-Internally this function runs the yolo image detection, and returns True if a person was detected, otherwise False. 
+To integrate YOLO and Rekognition into our system, we encapsulated their functionalities within wrapper classes. For instance, we created a wrapper class for YOLO, allowing us to use the \textit{yoloDetection.analyzeImage(image)} function. This function internally runs the YOLO image detection algorithm and returns \textit{True} if a person is detected, otherwise \textit{False}.
 
 \begin{center}
 \includegraphics[width=1\linewidth]{res/analyze_image-function.png}
@@ -142,7 +139,7 @@ Internally this function runs the yolo image detection, and returns True if a pe
 In the first weeks of implementing the distributed system, we solely focused on simulating disjoint networks in Docker, utilizing the Docker-Networks feature. 
 
 For every layer, we created a separate Dockerfile.[layer]. A simple \texttt{docker-compose.yaml} file was used to orchestrate the containers. In this orchestration, the camera containers were connected to the edge device, which in turn was connected to the cloud server. 
-The IOT containers are connected to the same network as the edge, the edge in addition is connected to the cloud network. 
+The IoT containers are connected to the same network as the edge, the edge in addition is connected to the cloud network. 
 The following \textit{.yaml} shows the configuration for networking in docker containers.
 
 \begin{verbatim}
@@ -169,8 +166,8 @@ Deployment was easy then, just a matter of spinning up the containers on the EC2
 \section{Deployment Setup}
 The entire distributed system runs on three AWS EC2 instances:
 \begin{itemize}
-    \item IOT - layer: camera instances
-    \item EDGE - layer: edge instance with YOLO
+    \item IoT - layer: two camera instances + alarm instance
+    \item EDGE - layer: two edge instances with YOLO
     \item CLOUD - layer: cloud instance with AWS Rekognition
 \end{itemize}
 
@@ -186,22 +183,21 @@ This deployment configuration provides a cost-effective setup while ensuring ade
 
 \begin{figure}[h!]
     \centering
-    %\includegraphics[width=1\linewidth]{res/report/DS_architecture_version2.png}
     \includegraphics[width=1\linewidth]{res/deployment2.png}
     \caption{Sucessful detection of intruders.}
     \label{fig:deployment}
 \end{figure}
-\section{Evaluation}
-For the evaluation of our distributed surveillance system, we conducted extensive performance testing across all three layers (IoT, Edge, and Cloud) to assess the system's efficiency and reliability. Our evaluation focused on several key metrics: processing latencies at both edge and cloud layers, YOLO detection accuracy ratios, and round-trip time (RTT) distributions under different deployment scenarios. We analyzed these metrics in both local Docker environments and AWS EC2 deployments to understand the system's behavior under various conditions. 
 
-As stated in the Deployment section, we used three EC2 instances representing IOT, Edge and Cloud layer respectively.  The Edge instance was deployed on a t2.medium instance, while the Cloud instance was deployed on a t2.micro instance. The IOT instance was also deployed on a t2.micro instance. 
+\section{Evaluation}
+For the evaluation of our distributed surveillance system, we conducted extensive performance testing across all three layers (IoT, edge, and cloud) to assess the system's efficiency and reliability. Our evaluation focused on several key metrics: processing latencies at both edge and cloud layers, YOLO detection accuracy ratios, and round-trip time (RTT) distributions under different deployment scenarios. We analyzed these metrics in both local Docker environments and EC2 deployments to understand the system's behavior under various conditions. 
+
+As stated in the Deployment section, we used three EC2 instances representing IoT, edge and cloud layer respectively.  The edge instance was deployed on a t2.medium instance, while the cloud instance was deployed on a t2.micro instance. The IoT instance was also deployed on a t2.micro instance. 
 The most compute is needed in the edge layer, as the YOLO algorithm is computationally expensive. The cloud layer is the least computationally expensive, as the facial recognition is offloaded to AWS Rekognition. 
 
 %TODO: describe dataset, what part of wisenet was used? frank weisst du welcher teil? hat es einen namen, oder einfach nur irgendwas?
 We decided to use parts of the WiseNET dataset to evaluate our distributed system. The videos are stored and processed on the IoT to send frames to the system. For the experiment we chose a dataset with two individuals appearing at different times in an office scenario.  One person simulates an intruder and the other an employee.
 In the following we focus also on two metrics that are dependent on the dataset. The YOLO detection ratio is calculated as the number of persons detected divided by the total number of frames processed. The intruder detection ratio is calculated as the number of intruders detected divided by the total number of frames processed. 
 As we had no time to manually check every result, we cannot verify the correctness of the detection. 
-But in the section \ref{sec:detection_experiment} we describe the detection experiment in more detail. With a manually labelled dataset we could calculate the precision and recall of the YOLO detection. 
 \\
 
 Initially our deployment evaluations showed low latencies on the cloud. The figure in the appendix \ref{fig:cloud_latencies_old} in the Appendix shows the latencies of the cloud processing. The latencies are very low, at a median latency of 78.1ms. Therefore we decided to simulate latencies in the system. 
@@ -209,11 +205,11 @@ Initially our deployment evaluations showed low latencies on the cloud. The figu
 \begin{figure}[!h]
     \centering
     \includegraphics[width=1\linewidth]{./res/evaluation_without_latencies/cloud_latencies_old.png}
-    \caption{Boxplot of cloud processing latencies"}
+    \caption{Boxplot of cloud processing latencies}
     \label{fig:cloud_latencies_old}
 \end{figure}
 
-Here we added gaussian  ($x \sim \mathcal{N}(150, 20)$) latencies to Edge-Cloud connection. In our assumption, Edge devices are at the same location as the cameras, so the latencies are very low. The cloud is located in a different region, so the latencies are higher. 
+Here we added gaussian  ($x \sim \mathcal{N}(150, 20)$) latencies to edge-cloud connection. In our assumption, edge devices are at the same location as the cameras, so the latencies are very low. The cloud is located in a different region, so the latencies are higher. 
 \hfill \break
 \hfill \break
 
@@ -235,7 +231,7 @@ Our YOLO detection statistics (Figure \ref{fig:yolo_ratios}) show a detection ra
 \end{figure}
 
 
-The end-to-end system performance is captured in the RTT distribution (Figure \ref{fig:rtt_distribution}). With a median RTT of 467.2ms and a mean of 698.9ms, the system demonstrates responsive performance even with our simulated Gaussian network latency ($\mathcal{N}(150, 20)$ ms) between Edge and Cloud. The standard deviation of 556.1ms indicates some variability in processing times, but the overall distribution remains within acceptable bounds for our surveillance use case. However the RTT heavily relies on the the amount of frames send to the Edge device and the computing power of the Edge processing instance. In \ref {sec:latency_analysis} we discuss the latency analysis in more detail.
+The end-to-end system performance is captured in the RTT distribution (Figure \ref{fig:rtt_distribution}). With a median RTT of 467.2ms and a mean of 698.9ms, the system demonstrates responsive performance even with our simulated Gaussian network latency ($x \sim \mathcal{N}(150, 20)$ ms) between edge and cloud. The standard deviation of 556.1ms indicates some variability in processing times, but the overall distribution remains within acceptable bounds for our surveillance use case. However the RTT heavily relies on the amount of frames send to the edge device and the computing power of the edge processing instance. In \ref {sec:latency_analysis} we discuss the latency analysis in more detail.
 
 \begin{figure}[h!]
     \centering
@@ -258,51 +254,48 @@ In Figure \ref{fig:intruder_ratios} we demonstrate the intruder detection ratios
 
 \subsection{Latency analysis}
 \label{sec:latency_analysis}
-The main bottleneck of the distributed intruder detection system lies in the Edge layer. The Edge layer's implementation consists of a worker thread and a queue. The worker sequentially processes frames from the queue. Whenever the rate of new incoming frames is higher than the processing rate, the queue will fill up, leading to increased latencies. This is the main reason for the high standard deviation in the RTT distribution. This problem depends mainly on the amount of frames sent per minute per device and the number of IoT devices connected to a single Edge device. 
-\\
+The main bottleneck of the distributed intruder detection system lies in the edge layer. The edge layer's implementation consists of a worker thread and a queue. The worker sequentially processes frames from the queue. Whenever the rate of new incoming frames is higher than the processing rate, the queue will fill up, leading to increased latencies. This is the main reason for the high standard deviation in the RTT distribution. This problem depends mainly on the amount of frames sent per minute per device and the number of IoT devices connected to a single edge device. 
+
 
 There are three variables to adjust in this setup: 
 \begin{itemize}
     \item limit the rate of sending frames of the cameras.
-    \item limit the number of connected devices per Edge device.
-    \item increase the resources of the Edge device and deploy multiple worker threads.
+    \item limit the number of connected devices per edge device.
+    \item increase the resources of the edge device and deploy multiple worker threads.
 \end{itemize}
-\hfill \break
+%\hfill \break
 
 
-We experimented mainly with differnt rates of sending frames to the Edge device. The framerate of the WiseNET dataset is 30 fps. We implemented a mechanism to send only every nth frame.
+We experimented mainly with different rates of sending frames to the edge device. The framerate of the WiseNET dataset is 30 fps. We implemented a mechanism to send only every nth frame.
 
-We conducted the experiment for two IoTs per Edge device with different frame rates. The results are shown in Figure \ref{fig:rtt_distribution_docker20} and Figure \ref{fig:rtt_distribution_docker60}.
 
-\begin{figure}[!h]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=1\linewidth]{./res/rtt_distribution-local_docker_test20skip.png}
     \caption{Round-trip time (RTT) boxplot showing end-to-end system latency (on Docker with 20 frames skipped)}
     \label{fig:rtt_distribution_docker20}
 \end{figure}
+We conducted the experiment for two IoTs per edge device with different frame rates. The results are shown in Figure \ref{fig:rtt_distribution_docker20} and Figure \ref{fig:rtt_distribution_docker60}.
+
 
 Figure \ref{fig:rtt_distribution_docker20} shows the RTT boxplot for the system with 20 frames skipped. This means, that $\frac{2}{3}$ frames per second.
 This resulted in really long latencies with a median of 13400s. The system was not able to process the frames in time and the round-trip times increased exponentially. 
 
 
 
-\begin{figure}[!h]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=1\linewidth]{./res/rtt_distribution-docker_test-60skip.png}
     \caption{Round-trip time (RTT) boxplot showing end-to-end system latency (on Docker with 60 frames skipped)}
     \label{fig:rtt_distribution_docker60}
 \end{figure}
 
-Figure \ref{fig:rtt_distribution_docker60} on the other hand shows the RTT boxplot for the system with 60 frames skipped. This means, that only 0.5 frames per second are sent to the Edge device. The system was able to process the frames in time and the round-trip times are very low. the median here is 350ms. 
+Figure \ref{fig:rtt_distribution_docker60} on the other hand shows the RTT boxplot for the system with 60 frames skipped. This means, that only 0.5 frames per second are sent to the edge device. The system was able to process the frames in time and the round-trip times are very low. the median here is 350ms. 
 
 This analysis shows the importance of the right parameters for the system. 
 
 
 
-
-\subsection{Detection experiment}
-\label{sec:detection_experiment}
-Werd ich noch machen falls zeit ist. von 14 bildern, wie viele werden richtig erkannt? alles manuell gelabelt
 
 
 
