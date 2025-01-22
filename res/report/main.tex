@@ -102,17 +102,15 @@ The distributed system comprises several components that must communicate effici
 For the \textit{IoT - Edge} communication we decided to use socket.io. This Python library enables communication with websockets. As we need to send a constant stream of data, this communication model seems to be the best fit. The protocol includes a full-duplex communication channel build on top of the network layer. It is a consistent communication model that requires minimal overhead for setting up the connection. 
 
 This model handles many frames transferred very well and is very efficient. In comparison to HTTP that would require a new connection for every frame, this model is much more efficient. 
-\\
+
 
 Our choice of communication model is based on the assumption that data transfer between the edge and cloud is less frequent than between IoT and edge. Ideally, only a few requests per minute are sent to the cloud, as the edge device filters out most non-relevant frames. This reduces the load on the cloud server and ensures efficient processing of critical data.
-
 Given our assumption, the overhead of setting up a new connection for every request is not as significant. Having a constant connection open to the cloud would be a waste of resources. 
 
 The REST API is a stateless communication model that uses HTTP requests to transfer data. It is simple to implement and easy to understand. 
 
-Whenever the preprocessing model (YOLO) detects a person in a frame, it sends the frame in a HTTP request to the cloud for further processing. 
-The cloud immediately processes the image and sends the response back in the HTTP response. We efficiently use the request and response for our computation. 
-\hfill \break
+Whenever the preprocessing model (YOLO) detects a person in a frame, it sends the frame in a HTTP request to the cloud for further processing. The cloud immediately processes the image and sends the response back in the HTTP response. We efficiently use the request and response for our computation. 
+
 
 \subsubsection{Detection Models}
 In the system two detection models are used, namely: 
@@ -121,7 +119,7 @@ In the system two detection models are used, namely:
 \item AWS Rekognition: facial recognition on cloud
 \end{itemize}
 
-\hfill \break
+
 
 We chose AWS Rekognition for facial recognition due to its powerful capabilities and ease of use. Having tested this service earlier in the semester, we found it to be a reliable and efficient solution for our needs.
 
@@ -129,9 +127,6 @@ YOLO was chosen as the detection model for the edge, as it is a very efficient o
 
 To integrate YOLO and Rekognition into our system, we encapsulated their functionalities within wrapper classes. For instance, we created a wrapper class for YOLO, allowing us to use the \textit{yoloDetection.analyzeImage(image)} function. This function internally runs the YOLO image detection algorithm and returns \textit{True} if a person is detected, otherwise \textit{False}.
 
-\begin{center}
-\includegraphics[width=1\linewidth]{res/analyze_image-function.png}
-\end{center}
 
 \section{Testing Setup}
 In the first weeks of implementing the distributed system, we solely focused on simulating disjoint networks in Docker, utilizing the Docker-Networks feature. 
@@ -169,7 +164,6 @@ The entire distributed system runs on three AWS EC2 instances:
     \item CLOUD - layer: cloud instance with AWS Rekognition
 \end{itemize}
 
-\hfill \break
 
 The IoT layer components (4 camera containers and 1 alarm container) are consolidated on a single t2.micro instance, which is sufficient for simulating the video streams and alarm functionality.
 
@@ -208,8 +202,7 @@ Initially our deployment evaluations showed low latencies on the cloud. The figu
 \end{figure}
 
 Here we added gaussian  ($x \sim \mathcal{N}(150, 20)$) latencies to edge-cloud connection. In our assumption, edge devices are at the same location as the cameras, so the latencies are very low. The cloud is located in a different region, so the latencies are higher. 
-\hfill \break
-\hfill \break
+
 
 \begin{figure}[h!]
     \centering
@@ -229,7 +222,7 @@ Our YOLO detection statistics (Figure \ref{fig:yolo_ratios}) show a detection ra
 \end{figure}
 
 
-The end-to-end system performance is captured in the RTT distribution (Figure \ref{fig:rtt_distribution}). With a median RTT of 467.2ms and a mean of 698.9ms, the system demonstrates responsive performance even with our simulated Gaussian network latency ($x \sim \mathcal{N}(150, 20)$ ms) between edge and cloud. The standard deviation of 556.1ms indicates some variability in processing times, but the overall distribution remains within acceptable bounds for our surveillance use case. However the RTT heavily relies on the amount of frames send to the edge device and the computing power of the edge processing instance. In \ref {sec:latency_analysis} we discuss the latency analysis in more detail.
+The end-to-end system performance is captured in the RTT distribution (Figure \ref{fig:rtt_distribution}). With a median RTT of 467.2ms and a mean of 698.9ms, the system demonstrates responsive performance even with our simulated Gaussian network latency ($x \sim \mathcal{N}(150, 20)$ ms) between edge and cloud. The standard deviation of 556.1ms indicates some variability in processing times, but the overall distribution remains within acceptable bounds for our surveillance use case. However the RTT heavily relies on the amount of frames send to the edge device and the computing power of the edge processing instance. In \ref {sec:latency_analysis} we discuss the latency analysis in more detail. Note that the RTT is calculated for both cases with and without intruders, meaning only a portion of the frames are sent to the cloud. Therefore, the RTT is not simply the sum of the median cloud latencies and the YOLO processing time.
 
 \begin{figure}[h!]
     \centering
@@ -261,35 +254,33 @@ There are three variables to adjust in this setup:
     \item limit the number of connected devices per edge device.
     \item increase the resources of the edge device and deploy multiple worker threads.
 \end{itemize}
-%\hfill \break
 
 
-We experimented mainly with different rates of sending frames to the edge device. The framerate of the WiseNET dataset is 30 fps. We implemented a mechanism to send only every nth frame.
+Our performance analysis focused on varying the frame transmission rates to the edge device. The framerate of the WiseNET dataset is 30 fps. We implemented a mechanism to send only every nth frame.
 
 
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=1\linewidth]{./res/rtt_distribution-local_docker_test20skip.png}
-    \caption{Round-trip time (RTT) boxplot showing end-to-end system latency (on Docker with 20 frames skipped)}
-    \label{fig:rtt_distribution_docker20}
-\end{figure}
+
 We conducted the experiment for two IoTs per edge device with different frame rates. The results are shown in Figure \ref{fig:rtt_distribution_docker20} and Figure \ref{fig:rtt_distribution_docker60}.
 
 
 Figure \ref{fig:rtt_distribution_docker20} shows the RTT boxplot for the system with 20 frames skipped. This means that $\frac{2}{3}$ frames per second.
 This resulted in significantly increased latencies with a median of 13400ms. The system was not able to process the frames in time and the round-trip times increased exponentially. 
 
-
-
-\begin{figure}[!htbp]
+\begin{figure}[!h]
     \centering
-    \includegraphics[width=1\linewidth]{./res/rtt_distribution-docker_test-60skip.png}
-    \caption{Round-trip time (RTT) boxplot showing end-to-end system latency (on Docker with 60 frames skipped)}
-    \label{fig:rtt_distribution_docker60}
+    \includegraphics[width=1\linewidth]{./res/rtt_distribution-local_docker_test20skip.png}
+    \caption{Round-trip time (RTT) boxplot showing end-to-end system latency (on Docker with 20 frames skipped)}
+    \label{fig:rtt_distribution_docker20}
 \end{figure}
 
 Figure \ref{fig:rtt_distribution_docker60} shows the RTT boxplot for the system with 60 frames skipped, meaning only 0.5 frames per second are sent to the edge device. In this configuration, the system processed the frames in a timely manner, resulting in significantly lower round-trip times with a median of 350ms.
 
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{./res/rtt_distribution-docker_test-60skip.png}
+    \caption{Round-trip time (RTT) boxplot showing end-to-end system latency (on Docker with 60 frames skipped)}
+    \label{fig:rtt_distribution_docker60}
+\end{figure}
 This analysis shows the importance of the right parameters for the system. 
 
 
