@@ -1,3 +1,0 @@
-\beamer@sectionintoc {1}{System architecture}{3}{0}{1}
-\beamer@sectionintoc {2}{Implementation details}{4}{0}{2}
-\beamer@sectionintoc {3}{Evaluation}{8}{0}{3}

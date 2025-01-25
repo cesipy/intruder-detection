@@ -9,6 +9,13 @@
 *main.synctex.gz
 *main.fdb_latexmk
 *__pycache__
+*end.aux
+*main.out
+*main.snm
+*main.toc
+*main.nav
+
+
 
 *copy_indoor.py
 *download_coco.py
